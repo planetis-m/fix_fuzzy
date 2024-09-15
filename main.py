@@ -237,10 +237,10 @@ def print_info(text):
   print(colored(f"{text}", "magenta", attrs=["bold"]))
 
 def print_change(text):
-  print(colored(f"  {text}", "green"))
+  print(colored(f"  ↳ {text}", "green"))
 
 def print_unchanged(text):
-  print(colored(f"  {text}", "dark_grey"))
+  print(colored(f"  ↳ {text}", "dark_grey"))
 
 from enum import Enum
 
@@ -321,14 +321,14 @@ def detect_and_preapply_changes(entry, filepath):
 
     if status_singular == MsgstrChangeStatus.UNCHANGED or \
         status_plural == MsgstrChangeStatus.UNCHANGED:
-      print_unchanged("↳ Entry NOT changed:")
+      print_unchanged("Entry NOT changed:")
       print(new_msgstr_singular)
       if is_trivial_change_plural:
         print(new_msgstr_plural)
       return False  # Change is not trivial, user will handle it
 
     if status_singular == MsgstrChangeStatus.AUTO_APPLIED:
-      print_change("↳ Entry updated automatically:")
+      print_change("Entry updated automatically:")
       colored_inline_diff(
         entry.msgstr_plural[0] if is_trivial_change_plural else entry.msgstr,
         new_msgstr_singular
@@ -336,7 +336,7 @@ def detect_and_preapply_changes(entry, filepath):
       if is_trivial_change_plural:
         colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
     elif status_singular == MsgstrChangeStatus.SAVED_AS_IS:
-      print_change("↳ Entry saved as is:")
+      print_change("Entry saved as is:")
       print(new_msgstr_singular)
       if is_trivial_change_plural:
         print(new_msgstr_plural)
