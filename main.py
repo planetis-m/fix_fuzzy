@@ -400,7 +400,7 @@ def scan_directory(directory):
       if file.endswith('.po'):
         filepath = os.path.join(root, file)
         count += process_po_file(filepath)
-  print_info(Changes made: {count})
+  print_info(f"Changes made: {count}")
 
 if __name__ == "__main__":
   directory = input("Enter the directory to scan for .po files: ").strip()
