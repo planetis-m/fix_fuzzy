@@ -27,8 +27,6 @@ def detect_ampersand_changes(old_msgid, new_msgid):
   old_ampersands = old_msgid.count('&') - old_msgid.count('&&') * 2
   new_ampersands = new_msgid.count('&') - new_msgid.count('&&') * 2
 
-  if old_ampersands != new_ampersands:
-    return old_ampersands, new_ampersands
   return old_ampersands, new_ampersands
 
 def remove_unescaped_ampersand(msgstr, count_to_remove):
