@@ -5,7 +5,7 @@ It can add ampersand characters (used for creating keyboard shortcuts) randomly 
 target's language letter frequencies as guide. It also can uncapitalize the words and make some
 simple substitutions at the end of the message (replacing ... with …, etc)
 
-![image](/uploads/-/system/user/16321/31ba00df7ecb70fcb97e2490094327c9/image.png){width=50% height=50%}
+![image](https://invent.kde.org/uploads/-/system/user/16321/31ba00df7ecb70fcb97e2490094327c9/image.png){width=50% height=50%}
 
 ## Installation
 
@@ -49,5 +49,5 @@ simple substitutions at the end of the message (replacing ... with …, etc)
 ```sh
 python autofix_fuzzy/main.py
 
-Enter the directory to scan for .po files: <Path to the 'messages' or a subfolder.>
+# Enter the directory to scan for .po files: <Path to the 'messages' or a subfolder.>
 ```
