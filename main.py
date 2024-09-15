@@ -347,6 +347,7 @@ def detect_and_preapply_changes(entry, filepath):
         entry.msgstr_plural[1] = new_msgstr_plural
       else:
         entry.msgstr = new_msgstr_singular
+    return True
   else:
     # print_unchanged(f"No changes applied due to complexity.")
     return False  # Change is not trivial, user will handle it
@@ -358,7 +359,7 @@ def edit_msgstr(entry, filepath):
   #   print("\nDiff with previous_msgid:")
   #   colored_inline_diff(entry.previous_msgid, entry.msgid)
   # Detect and pre-apply changes if msgid changed regarding trailing dots/ellipsis/colon/period
-  detect_and_preapply_changes(entry, filepath)
+  return detect_and_preapply_changes(entry, filepath)
   # # Show the current msgstr
   # print(f"\nCurrent msgstr: {entry.msgstr}")
   # # Prompt the user for action (edit, save, or skip)
@@ -384,21 +385,26 @@ def process_po_file(filepath):
   """Process the .po file and handle fuzzy entries."""
   po = polib.pofile(filepath)
   changed = False
+  count = 0
   for entry in po.fuzzy_entries():
     if edit_msgstr(entry, filepath):
+      count += 1
       entry.flags.remove('fuzzy')  # Remove the fuzzy flag
       changed = True
   if changed:
     print_info(f"Saving changes to {filepath}...")
     po.save()
+  return count
 
 def scan_directory(directory):
   """Scan the directory for .po files and process them."""
+  count = 0
   for root, _, files in os.walk(directory):
     for file in files:
       if file.endswith('.po'):
         filepath = os.path.join(root, file)
-        process_po_file(filepath)
+        count += process_po_file(filepath)
+  print(colored(f"Total number of changes: {count}", "light_grey"))
 
 if __name__ == "__main__":
   directory = input("Enter the directory to scan for .po files: ").strip()
