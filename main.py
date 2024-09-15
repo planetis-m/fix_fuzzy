@@ -383,15 +383,13 @@ def edit_msgstr(entry, filepath):
 
 def process_po_file(filepath):
   """Process the .po file and handle fuzzy entries."""
-  po = polib.pofile(filepath)
-  changed = False
+  po = polib.pofile(filepath, encoding='utf-8', wrapwidth=80)
   count = 0
   for entry in po.fuzzy_entries():
     if edit_msgstr(entry, filepath):
       count += 1
       entry.flags.remove('fuzzy')  # Remove the fuzzy flag
-      changed = True
-  if changed:
+  if count > 0:
     print_info(f"Saving changes to {filepath}...")
     po.save()
   return count
