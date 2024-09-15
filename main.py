@@ -328,7 +328,7 @@ def detect_and_preapply_changes(entry, filepath):
       return False  # Change is not trivial, user will handle it
 
     if status_singular == MsgstrChangeStatus.AUTO_APPLIED:
-      print_change("↳ Auto-applied change to entry:")
+      print_change("↳ Entry updated automatically:")
       colored_inline_diff(
         entry.msgstr_plural[0] if is_trivial_change_plural else entry.msgstr,
         new_msgstr_singular
