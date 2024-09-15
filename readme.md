@@ -1,9 +1,25 @@
-## Automatically fix fuzzy messages in translations!
+## Translation Assistant: Fuzzy Message Repair Tool
 
-This is a Python script that can repair some translation messages that have been marked as fuzzy.
-It can add ampersand characters (used for creating keyboard shortcuts) randomly in text using the
-target's language letter frequencies as guide. It also can uncapitalize the words and make some
-simple substitutions at the end of the message (replacing ... with …, etc)
+This Python script helps improve the quality of translated content
+by addressing messages marked as "fuzzy" in translation files.
+It offers several automated fixes:
+
+1. Intelligent ampersand insertion:
+
+   Adds ampersand characters for keyboard shortcuts, using the target
+   language's letter frequencies as a guide.
+
+2. Case adjustment:
+
+   Modifies capitalization to match the source text more closely.
+
+3. Punctuation refinement:
+
+   Performs simple substitutions, such as replacing "..." with "…"
+   for improved typography.
+
+By automating these common adjustments, this tool streamlines the
+translation review process and enhances overall text consistency.
 
 <img src="screenshots/image_1.png" alt="Screenshot" width="50%" />
 
