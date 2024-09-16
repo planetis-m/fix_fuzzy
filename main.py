@@ -115,7 +115,7 @@ def detect_trailing_changes(old, new):
   between the old msgid and new msgid.
   """
   # Define the trailing patterns to look for
-  trailing_patterns = ['...', ',,,', '…', ': ', ':', '.', ', ', ',']
+  trailing_patterns = ['...', '…', ': ', ':', '.', ', ', ',']
 
   def find_trailing_pattern(s):
     for pattern in trailing_patterns:
@@ -191,24 +191,24 @@ def normalize_string(s):
       prev_char = ch.lower()
   return ''.join(normalized).strip()
 
-# def open_editor_with_content(initial_content):
-#   """Open the user's default editor to edit multiline text."""
-#   # Create a temporary file
-#   with tempfile.NamedTemporaryFile(suffix=".tmp", mode='w+', delete=False) as tmp_file:
-#     # Write initial content (the current msgstr) to the temporary file
-#     tmp_file.write(initial_content)
-#     tmp_file_name = tmp_file.name
-#   # Try to get the user's default editor from environment variables, fallback to 'nano'
-#   editor = os.environ.get('EDITOR', 'nano')
-#   # Open the temporary file in the editor
-#   subprocess.call([editor, tmp_file_name])
-#   # After the user closes the editor, read the file back
-#   with open(tmp_file_name, 'r') as tmp_file:
-#     edited_content = tmp_file.read()
-#   # Clean up the temporary file
-#   os.remove(tmp_file_name)
-#
-#   return edited_content.strip()
+def open_editor_with_content(initial_content):
+  """Open the user's default editor to edit multiline text."""
+  # Create a temporary file
+  with tempfile.NamedTemporaryFile(suffix=".tmp", mode='w+', delete=False) as tmp_file:
+    # Write initial content (the current msgstr) to the temporary file
+    tmp_file.write(initial_content)
+    tmp_file_name = tmp_file.name
+  # Try to get the user's default editor from environment variables, fallback to 'nano'
+  editor = os.environ.get('EDITOR', 'nano')
+  # Open the temporary file in the editor
+  subprocess.call([editor, tmp_file_name])
+  # After the user closes the editor, read the file back
+  with open(tmp_file_name, 'r') as tmp_file:
+    edited_content = tmp_file.read()
+  # Clean up the temporary file
+  os.remove(tmp_file_name)
+
+  return edited_content
 
 def colored_inline_diff(str1, str2):
   # Create a SequenceMatcher object
@@ -284,7 +284,6 @@ def detect_and_preapply_changes(entry, filepath):
   # Handle singular and plural together if both exist
   if old_msgid and is_trivial_change(old_msgid, new_msgid) and \
       bool(entry.msgstr_plural) == is_trivial_change_plural: # XNOR
-    print_header(f"Editing fuzzy entry in {filepath}:{entry.linenum}")
     print_subheader(f"Detected trivial change in msgid:")
     colored_inline_diff(old_msgid, new_msgid)
     if is_trivial_change_plural:
@@ -352,38 +351,68 @@ def detect_and_preapply_changes(entry, filepath):
 
 def edit_msgstr(entry, filepath):
   """Function to edit msgstr with multiline editing support and pre-applied changes."""
-  # print_header(f"\nmsgid: {entry.msgid}")
-  # if entry.previous_msgid:
-  #   print_subheader("\nDiff with previous_msgid:")
-  #   colored_inline_diff(entry.previous_msgid, entry.msgid)
+  print_header(f"Editing fuzzy entry in {filepath}:{entry.linenum}")
+
+  old_msgid = entry.previous_msgid
+  new_msgid = entry.msgid
+  old_msgid_plural = entry.previous_msgid_plural
+  new_msgid_plural = entry.msgid_plural
+
   # Detect and pre-apply changes if msgid changed regarding trailing dots/ellipsis/colon/period
-  return detect_and_preapply_changes(entry, filepath)
-  # # Show the current msgstr
-  # print(f"\nCurrent msgstr: {entry.msgstr}")
-  # # Prompt the user for action (edit, save, or skip)
-  # while True:
-  #   action = input("Choose an action - [e]dit, [s]ave, or [k]skip: ").strip().lower()
-  #   if action == 'e':
-  #     # Open the user's editor with the current msgstr as the initial content
-  #     new_msgstr = open_editor_with_content(entry.msgstr)
-  #     # Update the msgstr if it was edited
-  #     if new_msgstr != entry.msgstr:
-  #       entry.msgstr = new_msgstr
-  #       print_change(f"\nEntry updated manually: {entry.msgstr}")
-  #     break
-  #   elif action == 's':
-  #     # Just save the current msgstr (possibly pre-applied changes)
-  #     break
-  #   elif action == 'k':
-  #     # Skip saving changes
-  #     return False
-  # return True
+  if not detect_and_preapply_changes(entry, filepath):
+    if old_msgid:
+      print_subheader("\nPrevious message:")
+      print(old_msgid)
+      if old_msgid_plural:
+        print(old_msgid_plural)
+    print_subheader("\nNew message:")
+    print(new_msgid)
+    if new_msgid_plural:
+      print(new_msgid_plural)
+  # Show the current msgstr
+  print_subheader(f"\nCurrent translation:")
+  current_msgstr_singular = entry.msgstr_plural[0] if entry.msgstr_plural else entry.msgstr
+  print(current_msgstr_singular)
+  is_msgstr_plural = bool(entry.msgstr_plural) and 1 in entry.msgstr_plural
+  if is_msgstr_plural:
+    print(entry.msgstr_plural[1])
+
+  # Prompt the user for action (edit, save, or skip)
+  while True:
+    action = input("Choose an action - [e]dit, [s]ave, or [k]skip: ").strip().lower()
+    if action == 'e':
+      # Open the user's editor with the current msgstr as the initial content
+      new_msgstr_singular = open_editor_with_content(current_msgstr_singular)
+      if is_msgstr_plural:
+        new_msgstr_plural = open_editor_with_content(entry.msgstr_plural[1])
+      # Update the msgstr if it was edited
+      if current_msgstr_singular != new_msgstr_singular or \
+          (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
+        print_change(f"\nEntry updated manually:")
+        colored_inline_diff(current_msgstr_singular, new_msgstr_singular)
+        if is_msgstr_plural:
+          colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
+
+        if is_msgstr_plural:
+          entry.msgstr_plural[0] = new_msgstr_singular
+          entry.msgstr_plural[1] = new_msgstr_plural
+        else:
+          entry.msgstr = new_msgstr_singular
+      break
+    elif action == 's':
+      # Just save the current msgstr (possibly pre-applied changes)
+      break
+    elif action == 'k':
+      # Skip saving changes
+      return False
+  return True
 
 def process_po_file(filepath):
   """Process the .po file and handle fuzzy entries."""
   po = polib.pofile(filepath, encoding='utf-8', wrapwidth=80)
   count = 0
   for entry in po.fuzzy_entries():
+    # if detect_and_preapply_changes(entry, filepath):
     if edit_msgstr(entry, filepath):
       count += 1
       entry.flags.remove('fuzzy')  # Remove the fuzzy flag

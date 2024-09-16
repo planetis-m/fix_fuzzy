@@ -5,7 +5,7 @@ import polib
 from termcolor import colored
 from difflib import SequenceMatcher
 
-# Warning BUG to fix:
+# Warning: BUG
 # msgid "&Quit <application>%1</application>"
 # -msgstr "&Έξοδος <application>%1</application>"
 # +msgstr "Έξοδος <applicatio&n>%1</application>"
@@ -128,6 +128,7 @@ def edit_msgstr(entry, filepath):
       not entry.msgstr_plural:
     print_header(f"Editing entry in {filepath}:{entry.linenum}")
     print_subheader(f"Detected invalid ampersand usage in msgstr:")
+    print(entry.msgid)
 
     ampersands_count = old_msgstr.count('&') - old_msgstr.count('&&') * 2
     new_msgstr = remove_unescaped_ampersand(old_msgstr, ampersands_count)
