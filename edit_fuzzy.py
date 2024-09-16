@@ -4,10 +4,10 @@ import tempfile
 import subprocess
 from termcolor import colored
 from difflib import SequenceMatcher
+from prompt_toolkit import prompt
 import select
 import sys
 import time
-import readline
 
 def open_editor_with_content(initial_content):
   """Open the user's default editor to edit multiline text."""
@@ -67,13 +67,10 @@ def input_with_timeout(prompt, timeout=10):
     print_info("Timeout reached. Continuing...")
     return None
 
-def prefill_input(prompt, text):
-  # Sets the default text for the input prompt
-  readline.set_startup_hook(lambda: readline.insert_text(text))
-  try:
-    return input(colored(prompt), "yellow")
-  finally:
-    readline.set_startup_hook()  # Clear the hook after use
+def prefill_input(prompt_text, default_text):
+  # Keybindings: Esc and later Enter to accept, C-E to enter in editor
+  return prompt(colored(prompt_text, "yellow"), default=default_text, multiline=True,
+                enable_open_in_editor=True, tempfile_suffix=".txt")
 
 def edit_msgstr(entry, filepath):
   """Function to edit msgstr with multiline editing support and pre-applied changes."""
@@ -114,19 +111,12 @@ def edit_msgstr(entry, filepath):
 
   # Prompt the user for action (edit, write, or skip)
   while True:
-    action = input("Choose an action - [E]dit, [O]pen in external editor, [W]rite, or [S]kip: ").strip().lower()
-    if action in ['e', 'o']:
-      new_msgstr = None
+    action = input("Choose an action - [E]dit, [W]rite, or [S]kip: ").strip().lower()
+    if action == 'e':
+      new_msgstr = prefill_input("S: ", current_msgstr)
       new_msgstr_plural = None
-      if action == 'o':
-        # Open the user's editor with the current msgstr as the initial content
-        new_msgstr = open_editor_with_content(current_msgstr)
-        if is_msgstr_plural:
-          new_msgstr_plural = open_editor_with_content(entry.msgstr_plural[1])
-      else:
-        new_msgstr = prefill_input("S: ", current_msgstr)
-        if is_msgstr_plural:
-          new_msgstr_plural = prefill_input("P: ", entry.msgstr_plural[1])
+      if is_msgstr_plural:
+        new_msgstr_plural = prefill_input("P: ", entry.msgstr_plural[1])
       # Update the msgstr if it was edited
       if current_msgstr != new_msgstr or \
           (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
