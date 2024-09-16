@@ -103,7 +103,7 @@ def insert_ampersand_before_letter(msgstr, letter):
   upper_index = msgstr.find(upper_letter)
 
   if lower_index == -1 and upper_index == -1:
-    return msgstr
+    return msgstr # cannot happen
   elif lower_index == -1 or (upper_index != -1 and upper_index < lower_index):
     return msgstr.replace(upper_letter, f'&{upper_letter}', 1)
   else:
@@ -352,9 +352,9 @@ def detect_and_preapply_changes(entry, filepath):
 
 def edit_msgstr(entry, filepath):
   """Function to edit msgstr with multiline editing support and pre-applied changes."""
-  # print(f"\nmsgid: {entry.msgid}")
+  # print_header(f"\nmsgid: {entry.msgid}")
   # if entry.previous_msgid:
-  #   print("\nDiff with previous_msgid:")
+  #   print_subheader("\nDiff with previous_msgid:")
   #   colored_inline_diff(entry.previous_msgid, entry.msgid)
   # Detect and pre-apply changes if msgid changed regarding trailing dots/ellipsis/colon/period
   return detect_and_preapply_changes(entry, filepath)
@@ -369,7 +369,7 @@ def edit_msgstr(entry, filepath):
   #     # Update the msgstr if it was edited
   #     if new_msgstr != entry.msgstr:
   #       entry.msgstr = new_msgstr
-  #       print(f"\nUpdated msgstr: {entry.msgstr}")
+  #       print_change(f"\nEntry updated manually: {entry.msgstr}")
   #     break
   #   elif action == 's':
   #     # Just save the current msgstr (possibly pre-applied changes)
