@@ -43,34 +43,42 @@ def colored_inline_diff(str1, str2):
       print(colored(str1[i1:i2], 'white', 'on_red') + colored(str2[j1:j2], 'green'), end='')
   print()  # Add a newline at the end
 
-def print_header(text):
-  print(colored(f"\n=== {text} ===", "yellow", attrs=["bold"]))
+def print_header(text, **kwargs):
+  print(colored(f"\n=== {text} ===\n", "yellow", attrs=["bold"]), **kwargs)
 
-def print_subheader(text):
-  print(colored(f"  {text}", "cyan"))
+def print_subheader(text, **kwargs):
+  print(colored(f" ─ {text}", "cyan"), **kwargs)
 
-def print_info(text):
-  print(colored(f"{text}", "magenta", attrs=["bold"]))
+def print_info(text, **kwargs):
+  print(colored(f"{text}", "magenta", attrs=["bold"]), **kwargs)
 
-def print_change(text):
-  print(colored(f"  ↳ {text}", "green"))
+def print_change(text, **kwargs):
+  print(colored(f"  ↳ {text}", "green"), **kwargs)
 
-def print_unchanged(text):
-  print(colored(f"  ↳ {text}", "dark_grey"))
+def print_unchanged(text, **kwargs):
+  print(colored(f"  ↳ {text}", "dark_grey"), **kwargs)
 
 def input_with_timeout(prompt, timeout=10):
-  print(prompt, end='', flush=True)
+  print_info(prompt, end='', flush=True)
   rlist, _, _ = select.select([sys.stdin], [], [], timeout)
   if rlist:
-    return sys.stdin.readline().strip().lower()
+    return sys.stdin.readline()
   else:
-    print_info("Timeout reached. Continuing...")
+    print_info("\nTimeout reached. Continuing...")
     return None
 
+def line_print(width=80):
+  line = "─" * width
+  print(colored(line, "light_grey", attrs=['dark']))
+
 def prefill_input(prompt_text, default_text):
-  # Keybindings: Esc and later Enter to accept, C-E to enter in editor
-  return prompt(prompt_text, default=default_text, multiline=True,
-                enable_open_in_editor=True, tempfile_suffix=".txt")
+  # Keybindings: Esc and later Enter to accept, Control+E to enter in editor
+  # Define custom style
+  line_print()
+  result = prompt(f"{prompt_text}\n> ", default=default_text, multiline=True,
+                  enable_open_in_editor=True, tempfile_suffix=".txt")
+  line_print()
+  return result
 
 def edit_msgstr(entry, filepath):
   """Function to edit msgstr with multiline editing support and pre-applied changes."""
@@ -102,7 +110,7 @@ def edit_msgstr(entry, filepath):
   if new_msgid_plural:
     print(new_msgid_plural)
   # Show the current msgstr
-  print_subheader(f"Current translation:")
+  print_subheader("Translation:")
   current_msgstr = entry.msgstr_plural[0] if entry.msgstr_plural else entry.msgstr
   print(current_msgstr)
   is_msgstr_plural = bool(entry.msgstr_plural) and 1 in entry.msgstr_plural
@@ -111,12 +119,12 @@ def edit_msgstr(entry, filepath):
 
   # Prompt the user for action (edit, write, or skip)
   while True:
-    action = input("Choose an action - [E]dit, [W]rite, or [S]kip: ").strip().lower()
+    action = input("\nChoose an action - [E]dit, [W]rite, or [S]kip: ").strip().lower()
     if action == 'e':
-      new_msgstr = prefill_input("sing.> ", current_msgstr)
+      new_msgstr = prefill_input("msgstr[0]" if is_msgstr_plural else "msgstr", current_msgstr)
       new_msgstr_plural = None
       if is_msgstr_plural:
-        new_msgstr_plural = prefill_input("plur.> ", entry.msgstr_plural[1])
+        new_msgstr_plural = prefill_input("msgstr[1]", entry.msgstr_plural[1])
       # Update the msgstr if it was edited
       if current_msgstr != new_msgstr or \
           (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
@@ -127,7 +135,7 @@ def edit_msgstr(entry, filepath):
       else:
         print_change("No changes made.")
       sec_to_skip = 3
-      pause_action = input_with_timeout(f"Saving in {sec_to_skip}s...\n", sec_to_skip)
+      pause_action = input_with_timeout(f"\nSaving in {sec_to_skip}s...", sec_to_skip)
       if not pause_action:
         if is_msgstr_plural:
           entry.msgstr_plural[0] = new_msgstr
