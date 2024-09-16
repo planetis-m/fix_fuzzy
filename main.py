@@ -367,7 +367,7 @@ def prefill_input(prompt, text):
   # Sets the default text for the input prompt
   readline.set_startup_hook(lambda: readline.insert_text(text))
   try:
-    return input(prompt)
+    return input(colored(prompt), "yellow")
   finally:
     readline.set_startup_hook()  # Clear the hook after use
 
@@ -422,9 +422,9 @@ def edit_msgstr(entry, filepath):
         if is_msgstr_plural:
           new_msgstr_plural = open_editor_with_content(entry.msgstr_plural[1])
       else:
-        new_msgstr = prefill_input("Edit: ", current_msgstr)
+        new_msgstr = prefill_input("S: ", current_msgstr)
         if is_msgstr_plural:
-          new_msgstr_plural = prefill_input("Edit plural: ", entry.msgstr_plural[1])
+          new_msgstr_plural = prefill_input("P: ", entry.msgstr_plural[1])
       # Update the msgstr if it was edited
       if current_msgstr != new_msgstr or \
           (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
