@@ -69,7 +69,7 @@ def input_with_timeout(prompt, timeout=10):
 
 def prefill_input(prompt_text, default_text):
   # Keybindings: Esc and later Enter to accept, C-E to enter in editor
-  return prompt(colored(prompt_text, "yellow"), default=default_text, multiline=True,
+  return prompt(prompt_text, default=default_text, multiline=True,
                 enable_open_in_editor=True, tempfile_suffix=".txt")
 
 def edit_msgstr(entry, filepath):
@@ -113,10 +113,10 @@ def edit_msgstr(entry, filepath):
   while True:
     action = input("Choose an action - [E]dit, [W]rite, or [S]kip: ").strip().lower()
     if action == 'e':
-      new_msgstr = prefill_input("S: ", current_msgstr)
+      new_msgstr = prefill_input("sing.> ", current_msgstr)
       new_msgstr_plural = None
       if is_msgstr_plural:
-        new_msgstr_plural = prefill_input("P: ", entry.msgstr_plural[1])
+        new_msgstr_plural = prefill_input("plur.> ", entry.msgstr_plural[1])
       # Update the msgstr if it was edited
       if current_msgstr != new_msgstr or \
           (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
@@ -126,7 +126,8 @@ def edit_msgstr(entry, filepath):
           colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
       else:
         print_change("No changes made.")
-      pause_action = input_with_timeout("Saving in 5s...\n", 5)
+      sec_to_skip = 3
+      pause_action = input_with_timeout(f"Saving in {sec_to_skip}s...\n", sec_to_skip)
       if not pause_action:
         if is_msgstr_plural:
           entry.msgstr_plural[0] = new_msgstr
