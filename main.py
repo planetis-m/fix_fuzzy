@@ -303,6 +303,7 @@ def detect_and_preapply_changes(entry, filepath):
       change_applied or old_msgid == new_msgid
     )
     # If there is a plural form, apply changes to msgstr_plural[1]
+    new_msgstr_plural = None
     if entry.msgstr_plural and 1 in entry.msgstr_plural:
       applied, new_msgstr_plural = apply_changes_to_strs(old_msgid_plural,
           new_msgid_plural, entry.msgstr_plural[1])
@@ -360,7 +361,9 @@ def edit_msgstr(entry, filepath):
 
   # Store the original msgstr and msgstr_plural to restore if user skips
   original_msgstr = entry.msgstr
-  original_msgstr_plural = entry.msgstr_plural.copy() if entry.msgstr_plural else None
+  original_msgstr_plural = None
+  if entry.msgstr_plural:
+    original_msgstr_plural = entry.msgstr_plural.copy()
 
   def restore_original(entry):
     entry.msgstr = original_msgstr
@@ -393,6 +396,7 @@ def edit_msgstr(entry, filepath):
       if action == 'e':
         # Open the user's editor with the current msgstr as the initial content
         new_msgstr_singular = open_editor_with_content(current_msgstr_singular)
+        new_msgstr_plural = None
         if is_msgstr_plural:
           new_msgstr_plural = open_editor_with_content(entry.msgstr_plural[1])
         # Update the msgstr if it was edited
