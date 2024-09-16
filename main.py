@@ -2,8 +2,8 @@ import random
 import os
 import string
 import polib
-# import tempfile
-# import subprocess
+import tempfile
+import subprocess
 from termcolor import colored
 from difflib import SequenceMatcher
 
@@ -291,15 +291,15 @@ def detect_and_preapply_changes(entry, filepath):
 
     change_applied = False
     # Apply changes to the singular form
-    applied, new_msgstr_singular = apply_changes_to_strs(
+    applied, new_msgstr = apply_changes_to_strs(
       old_msgid, new_msgid,
       entry.msgstr_plural[0] if is_trivial_change_plural else entry.msgstr
     )
     change_applied = change_applied or applied
 
-    status_singular = process_msgstr_change(
+    status = process_msgstr_change(
       entry.msgstr_plural[0] if is_trivial_change_plural else entry.msgstr,
-      new_msgstr_singular,
+      new_msgstr,
       change_applied or old_msgid == new_msgid
     )
     # If there is a plural form, apply changes to msgstr_plural[1]
@@ -317,34 +317,34 @@ def detect_and_preapply_changes(entry, filepath):
     else:
       status_plural = MsgstrChangeStatus.SAVED_AS_IS
 
-    if status_singular == MsgstrChangeStatus.UNCHANGED or \
+    if status == MsgstrChangeStatus.UNCHANGED or \
         status_plural == MsgstrChangeStatus.UNCHANGED:
       print_unchanged("Entry NOT changed:")
-      print(new_msgstr_singular)
+      print(new_msgstr)
       if is_trivial_change_plural:
         print(new_msgstr_plural)
       return False  # Change is not trivial, user will handle it
 
-    if status_singular == MsgstrChangeStatus.AUTO_APPLIED:
+    if status == MsgstrChangeStatus.AUTO_APPLIED:
       print_change("Entry updated automatically:")
       colored_inline_diff(
         entry.msgstr_plural[0] if is_trivial_change_plural else entry.msgstr,
-        new_msgstr_singular
+        new_msgstr
       )
       if is_trivial_change_plural:
         colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
-    elif status_singular == MsgstrChangeStatus.SAVED_AS_IS:
+    elif status == MsgstrChangeStatus.SAVED_AS_IS:
       print_change("Entry saved as is:")
-      print(new_msgstr_singular)
+      print(new_msgstr)
       if is_trivial_change_plural:
         print(new_msgstr_plural)
 
-    if status_singular == MsgstrChangeStatus.AUTO_APPLIED:
+    if status == MsgstrChangeStatus.AUTO_APPLIED:
       if is_trivial_change_plural:
-        entry.msgstr_plural[0] = new_msgstr_singular
+        entry.msgstr_plural[0] = new_msgstr
         entry.msgstr_plural[1] = new_msgstr_plural
       else:
-        entry.msgstr = new_msgstr_singular
+        entry.msgstr = new_msgstr
     return True
   else:
     # print_unchanged(f"No changes applied due to complexity.")
@@ -383,48 +383,43 @@ def edit_msgstr(entry, filepath):
       print(new_msgid_plural)
   # Show the current msgstr
   print_subheader(f"\nCurrent translation:")
-  current_msgstr_singular = entry.msgstr_plural[0] if entry.msgstr_plural else entry.msgstr
-  print(current_msgstr_singular)
+  current_msgstr = entry.msgstr_plural[0] if entry.msgstr_plural else entry.msgstr
+  print(current_msgstr)
   is_msgstr_plural = bool(entry.msgstr_plural) and 1 in entry.msgstr_plural
   if is_msgstr_plural:
     print(entry.msgstr_plural[1])
 
-  try:
-    # Prompt the user for action (edit, save, or skip)
-    while True:
-      action = input("Choose an action - [e]dit, [s]ave, or [k]skip: ").strip().lower()
-      if action == 'e':
-        # Open the user's editor with the current msgstr as the initial content
-        new_msgstr_singular = open_editor_with_content(current_msgstr_singular)
-        new_msgstr_plural = None
+  # Prompt the user for action (edit, save, or skip)
+  while True:
+    action = input("Choose an action - [e]dit, [s]ave, or [k]skip: ").strip().lower()
+    if action == 'e':
+      # Open the user's editor with the current msgstr as the initial content
+      new_msgstr = open_editor_with_content(current_msgstr)
+      new_msgstr_plural = None
+      if is_msgstr_plural:
+        new_msgstr_plural = open_editor_with_content(entry.msgstr_plural[1])
+      # Update the msgstr if it was edited
+      if current_msgstr != new_msgstr or \
+          (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
+        print_change(f"\nEntry updated manually:")
+        colored_inline_diff(current_msgstr, new_msgstr)
         if is_msgstr_plural:
-          new_msgstr_plural = open_editor_with_content(entry.msgstr_plural[1])
-        # Update the msgstr if it was edited
-        if current_msgstr_singular != new_msgstr_singular or \
-            (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
-          print_change(f"\nEntry updated manually:")
-          colored_inline_diff(current_msgstr_singular, new_msgstr_singular)
-          if is_msgstr_plural:
-            colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
+          colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
 
-          if is_msgstr_plural:
-            entry.msgstr_plural[0] = new_msgstr_singular
-            entry.msgstr_plural[1] = new_msgstr_plural
-          else:
-            entry.msgstr = new_msgstr_singular
-        break
-      elif action == 's':
-        # Just save the current msgstr (possibly pre-applied changes)
-        break
-      elif action == 'k':
-        # Skip saving changes
-        restore_original(entry)
-        return False
-  except KeyboardInterrupt:
-    print("\nOperation interrupted by user.")
-    restore_original(entry)
-    return False
-  return True
+        if is_msgstr_plural:
+          entry.msgstr_plural[0] = new_msgstr
+          entry.msgstr_plural[1] = new_msgstr_plural
+        else:
+          entry.msgstr = new_msgstr
+      return True
+    elif action == 's':
+      # Just save the current msgstr (possibly pre-applied changes)
+      return True
+    elif action == 'k':
+      # Skip saving changes
+      restore_original(entry)
+      return False
+  return False # cannot happen
 
 def process_po_file(filepath, interactive):
   """Process the .po file and handle fuzzy entries."""
@@ -440,14 +435,14 @@ def process_po_file(filepath, interactive):
     po.save()
   return count
 
-def scan_directory(directory):
+def scan_directory(directory, interactive):
   """Scan the directory for .po files and process them."""
   count = 0
   for root, _, files in os.walk(directory):
     for file in files:
       if file.endswith('.po'):
         filepath = os.path.join(root, file)
-        count += process_po_file(filepath)
+        count += process_po_file(filepath, interactive)
   print_info(f"Changes made: {count}")
 
 if __name__ == "__main__":
