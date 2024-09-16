@@ -389,9 +389,9 @@ def edit_msgstr(entry, filepath):
   if is_msgstr_plural:
     print(entry.msgstr_plural[1])
 
-  # Prompt the user for action (edit, save, or skip)
+  # Prompt the user for action (edit, write, or skip)
   while True:
-    action = input("Choose an action - [e]dit, [s]ave, or [k]skip: ").strip().lower()
+    action = input("Choose an action - [E]dit, [W]rite, or [S]kip: ").strip().lower()
     if action == 'e':
       # Open the user's editor with the current msgstr as the initial content
       new_msgstr = open_editor_with_content(current_msgstr)
@@ -412,10 +412,10 @@ def edit_msgstr(entry, filepath):
         else:
           entry.msgstr = new_msgstr
       return True
-    elif action == 's':
+    elif action == 'w':
       # Just save the current msgstr (possibly pre-applied changes)
       return True
-    elif action == 'k':
+    elif action == 's':
       # Skip saving changes
       restore_original(entry)
       return False
