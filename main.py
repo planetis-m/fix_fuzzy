@@ -358,6 +358,15 @@ def edit_msgstr(entry, filepath):
   old_msgid_plural = entry.previous_msgid_plural
   new_msgid_plural = entry.msgid_plural
 
+  # Store the original msgstr and msgstr_plural to restore if user skips
+  original_msgstr = entry.msgstr
+  original_msgstr_plural = entry.msgstr_plural.copy() if entry.msgstr_plural else None
+
+  def restore_original(entry):
+    entry.msgstr = original_msgstr
+    if original_msgstr_plural:
+      entry.msgstr_plural = original_msgstr_plural
+
   # Detect and pre-apply changes if msgid changed regarding trailing dots/ellipsis/colon/period
   if not detect_and_preapply_changes(entry, filepath):
     if old_msgid:
@@ -377,43 +386,49 @@ def edit_msgstr(entry, filepath):
   if is_msgstr_plural:
     print(entry.msgstr_plural[1])
 
-  # Prompt the user for action (edit, save, or skip)
-  while True:
-    action = input("Choose an action - [e]dit, [s]ave, or [k]skip: ").strip().lower()
-    if action == 'e':
-      # Open the user's editor with the current msgstr as the initial content
-      new_msgstr_singular = open_editor_with_content(current_msgstr_singular)
-      if is_msgstr_plural:
-        new_msgstr_plural = open_editor_with_content(entry.msgstr_plural[1])
-      # Update the msgstr if it was edited
-      if current_msgstr_singular != new_msgstr_singular or \
-          (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
-        print_change(f"\nEntry updated manually:")
-        colored_inline_diff(current_msgstr_singular, new_msgstr_singular)
+  try:
+    # Prompt the user for action (edit, save, or skip)
+    while True:
+      action = input("Choose an action - [e]dit, [s]ave, or [k]skip: ").strip().lower()
+      if action == 'e':
+        # Open the user's editor with the current msgstr as the initial content
+        new_msgstr_singular = open_editor_with_content(current_msgstr_singular)
         if is_msgstr_plural:
-          colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
+          new_msgstr_plural = open_editor_with_content(entry.msgstr_plural[1])
+        # Update the msgstr if it was edited
+        if current_msgstr_singular != new_msgstr_singular or \
+            (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
+          print_change(f"\nEntry updated manually:")
+          colored_inline_diff(current_msgstr_singular, new_msgstr_singular)
+          if is_msgstr_plural:
+            colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
 
-        if is_msgstr_plural:
-          entry.msgstr_plural[0] = new_msgstr_singular
-          entry.msgstr_plural[1] = new_msgstr_plural
-        else:
-          entry.msgstr = new_msgstr_singular
-      break
-    elif action == 's':
-      # Just save the current msgstr (possibly pre-applied changes)
-      break
-    elif action == 'k':
-      # Skip saving changes
-      return False
+          if is_msgstr_plural:
+            entry.msgstr_plural[0] = new_msgstr_singular
+            entry.msgstr_plural[1] = new_msgstr_plural
+          else:
+            entry.msgstr = new_msgstr_singular
+        break
+      elif action == 's':
+        # Just save the current msgstr (possibly pre-applied changes)
+        break
+      elif action == 'k':
+        # Skip saving changes
+        restore_original(entry)
+        return False
+  except KeyboardInterrupt:
+    print("\nOperation interrupted by user.")
+    restore_original(entry)
+    return False
   return True
 
-def process_po_file(filepath):
+def process_po_file(filepath, interactive):
   """Process the .po file and handle fuzzy entries."""
   po = polib.pofile(filepath, encoding='utf-8', wrapwidth=80)
   count = 0
   for entry in po.fuzzy_entries():
-    # if detect_and_preapply_changes(entry, filepath):
-    if edit_msgstr(entry, filepath):
+    if interactive and edit_msgstr(entry, filepath) or \
+        detect_and_preapply_changes(entry, filepath):
       count += 1
       entry.flags.remove('fuzzy')  # Remove the fuzzy flag
   if count > 0:
@@ -433,4 +448,5 @@ def scan_directory(directory):
 
 if __name__ == "__main__":
   directory = input("Enter the directory to scan for .po files: ").strip()
-  scan_directory(directory)
+  interactive = True
+  scan_directory(directory, interactive)
