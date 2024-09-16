@@ -6,6 +6,10 @@ import tempfile
 import subprocess
 from termcolor import colored
 from difflib import SequenceMatcher
+import select
+import sys
+import time
+import readline
 
 # Letter Frequencies of the Greek language
 GREEK_LETTER_PENALTIES = {
@@ -350,6 +354,23 @@ def detect_and_preapply_changes(entry, filepath):
     # print_unchanged(f"No changes applied due to complexity.")
     return False  # Change is not trivial, user will handle it
 
+def input_with_timeout(prompt, timeout=10):
+  print(prompt, end='', flush=True)
+  rlist, _, _ = select.select([sys.stdin], [], [], timeout)
+  if rlist:
+    return sys.stdin.readline().strip().lower()
+  else:
+    print_info("Timeout reached. Continuing...")
+    return None
+
+def prefill_input(prompt, text):
+  # Sets the default text for the input prompt
+  readline.set_startup_hook(lambda: readline.insert_text(text))
+  try:
+    return input(prompt)
+  finally:
+    readline.set_startup_hook()  # Clear the hook after use
+
 def edit_msgstr(entry, filepath):
   """Function to edit msgstr with multiline editing support and pre-applied changes."""
   print_header(f"Editing fuzzy entry in {filepath}:{entry.linenum}")
@@ -373,16 +394,16 @@ def edit_msgstr(entry, filepath):
   # Detect and pre-apply changes if msgid changed regarding trailing dots/ellipsis/colon/period
   if not detect_and_preapply_changes(entry, filepath):
     if old_msgid:
-      print_subheader("\nPrevious message:")
+      print_subheader("Previous message:")
       print(old_msgid)
       if old_msgid_plural:
         print(old_msgid_plural)
-    print_subheader("\nNew message:")
+    print_subheader("New message:")
     print(new_msgid)
     if new_msgid_plural:
       print(new_msgid_plural)
   # Show the current msgstr
-  print_subheader(f"\nCurrent translation:")
+  print_subheader(f"Current translation:")
   current_msgstr = entry.msgstr_plural[0] if entry.msgstr_plural else entry.msgstr
   print(current_msgstr)
   is_msgstr_plural = bool(entry.msgstr_plural) and 1 in entry.msgstr_plural
@@ -391,27 +412,36 @@ def edit_msgstr(entry, filepath):
 
   # Prompt the user for action (edit, write, or skip)
   while True:
-    action = input("Choose an action - [E]dit, [W]rite, or [S]kip: ").strip().lower()
-    if action == 'e':
-      # Open the user's editor with the current msgstr as the initial content
-      new_msgstr = open_editor_with_content(current_msgstr)
+    action = input("Choose an action - [E]dit, [O]pen in external editor, [W]rite, or [S]kip: ").strip().lower()
+    if action in ['e', 'o']:
+      new_msgstr = None
       new_msgstr_plural = None
-      if is_msgstr_plural:
-        new_msgstr_plural = open_editor_with_content(entry.msgstr_plural[1])
+      if action == 'o':
+        # Open the user's editor with the current msgstr as the initial content
+        new_msgstr = open_editor_with_content(current_msgstr)
+        if is_msgstr_plural:
+          new_msgstr_plural = open_editor_with_content(entry.msgstr_plural[1])
+      else:
+        new_msgstr = prefill_input("Edit: ", current_msgstr)
+        if is_msgstr_plural:
+          new_msgstr_plural = prefill_input("Edit plural: ", entry.msgstr_plural[1])
       # Update the msgstr if it was edited
       if current_msgstr != new_msgstr or \
           (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
-        print_change(f"\nEntry updated manually:")
+        print_change(f"Entry updated manually:")
         colored_inline_diff(current_msgstr, new_msgstr)
         if is_msgstr_plural:
           colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
-
+      else:
+        print_change("No changes made.")
+      pause_action = input_with_timeout("Saving in 5s...\n", 5)
+      if not pause_action:
         if is_msgstr_plural:
           entry.msgstr_plural[0] = new_msgstr
           entry.msgstr_plural[1] = new_msgstr_plural
         else:
           entry.msgstr = new_msgstr
-      return True
+        return True
     elif action == 'w':
       # Just save the current msgstr (possibly pre-applied changes)
       return True
