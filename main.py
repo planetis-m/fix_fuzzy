@@ -208,7 +208,7 @@ def open_editor_with_content(initial_content):
   # Clean up the temporary file
   os.remove(tmp_file_name)
 
-  return edited_content
+  return edited_content.rstrip('\n')
 
 def colored_inline_diff(str1, str2):
   # Create a SequenceMatcher object
