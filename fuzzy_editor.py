@@ -9,6 +9,9 @@ import sys
 import time
 import argparse
 
+def highlight_spaces(text):
+  return ''.join('·' if c == ' ' else '↵\n' if c == '\n' else c for c in text)
+
 def colored_inline_diff(str1, str2):
   # Create a SequenceMatcher object
   matcher = SequenceMatcher(None, str1, str2)
@@ -17,11 +20,14 @@ def colored_inline_diff(str1, str2):
     if op == 'equal':
       print(str1[i1:i2], end='')
     elif op == 'delete':
-      print(colored(str1[i1:i2], 'white', 'on_red'), end='')
+      highlighted = highlight_spaces(str1[i1:i2])
+      print(colored(highlighted, 'white', 'on_red'), end='')
     elif op == 'insert':
-      print(colored(str2[j1:j2], 'green'), end='')
+      highlighted = highlight_spaces(str2[j1:j2])
+      print(colored(highlighted, 'green'), end='')
     elif op == 'replace':
-      print(colored(str1[i1:i2], 'white', 'on_red') + colored(str2[j1:j2], 'green'), end='')
+      print(colored(highlight_spaces(str1[i1:i2]), 'white', 'on_red') + \
+          colored(highlight_spaces(str2[j1:j2]), 'green'), end='')
   print()  # Add a newline at the end
 
 def print_old_message(str1, str2):
@@ -30,7 +36,8 @@ def print_old_message(str1, str2):
     if op == 'equal':
       print(str1[i1:i2], end='')
     elif op in ['delete', 'replace']:
-      print(colored(str1[i1:i2], 'white', 'on_red'), end='')
+      highlighted = highlight_spaces(str1[i1:i2])
+      print(colored(highlighted, 'white', 'on_red'), end='')
   print()  # Add a newline at the end
 
 def print_new_message(str1, str2):
@@ -38,10 +45,9 @@ def print_new_message(str1, str2):
   for op, i1, i2, j1, j2 in matcher.get_opcodes():
     if op == 'equal':
       print(str2[j1:j2], end='')
-    elif op == 'insert':
-      print(colored(str2[j1:j2], 'white', 'on_green'), end='')
-    elif op == 'replace':
-      print(colored(str2[j1:j2], 'green'), end='')
+    elif op in ['insert', 'replace']:
+      highlighted = highlight_spaces(str2[j1:j2])
+      print(colored(highlighted, 'green'), end='')
   print()  # Add a newline at the end
 
 def print_header(text, **kwargs):
@@ -116,10 +122,11 @@ def edit_msgstr(entry, filepath):
     print_new_message(old_msgid, new_msgid)
   else:
     print(new_msgid)
-  if old_msgid_plural and new_msgid_plural:
-    print_new_message(old_msgid_plural, new_msgid_plural)
-  else:
-    print(new_msgid_plural)
+  if new_msgid_plural:
+    if old_msgid_plural:
+      print_new_message(old_msgid_plural, new_msgid_plural)
+    else:
+      print(new_msgid_plural)
   # Show the current msgstr
   print_subheader("Translation:")
   current_msgstr = entry.msgstr_plural[0] if entry.msgstr_plural else entry.msgstr
