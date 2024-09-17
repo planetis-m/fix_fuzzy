@@ -24,6 +24,26 @@ def colored_inline_diff(str1, str2):
       print(colored(str1[i1:i2], 'white', 'on_red') + colored(str2[j1:j2], 'green'), end='')
   print()  # Add a newline at the end
 
+def print_old_message(str1, str2):
+  matcher = SequenceMatcher(None, str1, str2)
+  for op, i1, i2, j1, j2 in matcher.get_opcodes():
+    if op == 'equal':
+      print(str1[i1:i2], end='')
+    elif op in ['delete', 'replace']:
+      print(colored(str1[i1:i2], 'white', 'on_red'), end='')
+  print()  # Add a newline at the end
+
+def print_new_message(str1, str2):
+  matcher = SequenceMatcher(None, str1, str2)
+  for op, i1, i2, j1, j2 in matcher.get_opcodes():
+    if op == 'equal':
+      print(str2[j1:j2], end='')
+    elif op == 'insert':
+      print(colored(str2[j1:j2], 'white', 'on_green'), end='')
+    elif op == 'replace':
+      print(colored(str2[j1:j2], 'green'), end='')
+  print()  # Add a newline at the end
+
 def print_header(text, **kwargs):
   print(colored(f"\n=== {text} ===\n", "yellow", attrs=["bold"]), **kwargs)
 
@@ -88,12 +108,17 @@ def edit_msgstr(entry, filepath):
 
   if old_msgid:
     print_subheader("Previous message:")
-    print(old_msgid)
+    print_old_message(old_msgid, new_msgid)
     if old_msgid_plural:
-      print(old_msgid_plural)
+      print_old_message(old_msgid_plural, new_msgid_plural)
   print_subheader("New message:")
-  print(new_msgid)
-  if new_msgid_plural:
+  if old_msgid:
+    print_new_message(old_msgid, new_msgid)
+  else:
+    print(new_msgid)
+  if old_msgid_plural and new_msgid_plural:
+    print_new_message(old_msgid_plural, new_msgid_plural)
+  else:
     print(new_msgid_plural)
   # Show the current msgstr
   print_subheader("Translation:")
