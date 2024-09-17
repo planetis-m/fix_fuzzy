@@ -137,10 +137,10 @@ def edit_msgstr(entry, filepath):
         # Skip saving changes
         restore_original(entry)
         return False
-  except Exception as e:
+  except (KeyboardInterrupt, SystemExit):
     print_info("\nEditing interrupted. Reverting...")
     restore_original(entry)
-    raise e
+    raise
   return False # cannot happen
 
 def process_po_file(filepath, comparison_type, max_char_diff, no_comparison):
@@ -158,6 +158,7 @@ def process_po_file(filepath, comparison_type, max_char_diff, no_comparison):
   except (KeyboardInterrupt, SystemExit):
     should_quit = True
   if count > 0:
+    print()
     print_info(f"Saving changes to {filepath}...")
     po.save()
   return count, should_quit
