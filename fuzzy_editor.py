@@ -52,7 +52,7 @@ def print_header(text, **kwargs):
   print(colored(f"\n=== {text} ===\n", "yellow", attrs=["bold"]), **kwargs)
 
 def print_subheader(text, **kwargs):
-  print(colored(f" ─ {text}", "cyan"), **kwargs)
+  print(colored(f"\n ─ {text}", "cyan"), **kwargs)
 
 def print_info(text, **kwargs):
   print(colored(f"{text}", "magenta", attrs=["bold"]), **kwargs)
@@ -113,7 +113,7 @@ def edit_msgstr(entry, filepath):
       if entry.msgctxt != entry.previous_msgctxt:
         print_context(f"  ↳ (previous: {entry.previous_msgctxt})")
       else:
-        print_context("  ↳ (matches previous)\n")
+        print_context("  ↳ (matches previous)")
 
   if old_msgid:
     print_subheader("Previous message")

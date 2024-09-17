@@ -82,14 +82,14 @@ def assign_ampersand_randomly(msgstr, ampersands_to_add):
     return msgstr
 
   # Create a list of letters with their penalties
-  weighted_letters = []
+  letter_weights = []
   for letter in unique_letters:
     penalty = GREEK_LETTER_PENALTIES.get(letter, 1)  # Higher penalty for common letters
-    weighted_letters.extend([letter] * int(100 / penalty))  # More penalty = fewer chances
+    letter_weights.extend(int(100 / penalty))  # More penalty = fewer chances
 
   # Randomly assign ampersands to letters in msgstr
   for _ in range(ampersands_to_add):
-    chosen_letter = random.choice(weighted_letters)
+    chosen_letter = random.choices(unique_letters, weights=letter_weights)[0]
     msgstr = insert_ampersand_before_letter(msgstr, chosen_letter)
   return msgstr
 
