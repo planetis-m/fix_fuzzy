@@ -1,4 +1,5 @@
-## Translation Assistant: Fuzzy Message Repair Tool
+## Translation Assistance Tools:
+### Fuzzy Message Repair Tool
 
 This Python script helps improve the quality of translated content
 by addressing messages marked as "fuzzy" in translation files.
@@ -22,6 +23,11 @@ By automating these common adjustments, this tool streamlines the
 translation review process and enhances overall text consistency.
 
 <img src="screenshots/image_1.png" alt="Screenshot" width="50%" />
+
+### Fuzzy Editor Tool
+
+A new editor tool has been added that allows for interactive processing
+of the .po files.
 
 ## Installation
 
@@ -63,7 +69,7 @@ translation review process and enhances overall text consistency.
 ## Usage
 
 ```sh
-python autofix_fuzzy/main.py
+python fuzzy_repair_tool.py /path/to/directory
 
-# Enter the directory to scan for .po files: <Path to 'messages' or a subfolder.>
+python fyzzy_editor.py /path/to/directory
 ```

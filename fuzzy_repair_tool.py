@@ -2,6 +2,7 @@ import random
 import os
 # import string
 import polib
+import argparse
 from termcolor import colored
 from difflib import SequenceMatcher
 
@@ -351,5 +352,8 @@ def scan_directory(directory):
   print_info(f"Changes made: {count}")
 
 if __name__ == "__main__":
-  directory = input("Enter the directory to scan for .po files: ").strip()
-  scan_directory(directory)
+  parser = argparse.ArgumentParser(description="An automatic tool to repair fuzzy translation entries in .po files.")
+  parser.add_argument("directory", help="The directory to scan for .po files.")
+  args = parser.parse_args()
+
+  scan_directory(args.directory)

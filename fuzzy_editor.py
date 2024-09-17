@@ -158,7 +158,6 @@ def process_po_file(filepath, comparison_type, max_char_diff, no_comparison):
   except (KeyboardInterrupt, SystemExit):
     should_quit = True
   if count > 0:
-    print()
     print_info(f"Saving changes to {filepath}...")
     po.save()
   return count, should_quit
@@ -227,7 +226,7 @@ def strings_differ_by_n_chars(str1, str2, max_char_diff):
   return diff_chars <= max_char_diff
 
 def parse_args():
-  parser = argparse.ArgumentParser(description="Process .po files and handle fuzzy entries.")
+  parser = argparse.ArgumentParser(description="An interactive editor for fuzzy translation entries in .po files.")
   parser.add_argument('directory', help="The directory to scan for .po files.")
   parser.add_argument('--comparison-type', choices=['whitespace_punctuation', 'character_difference'],
                       default='whitespace_punctuation', help="The type of comparison to use.")
