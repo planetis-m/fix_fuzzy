@@ -156,7 +156,7 @@ def process_po_file(filepath, comparison_type, max_char_diff, no_comparison):
           count += 1
           entry.flags.remove('fuzzy')  # Remove the fuzzy flag
   except (KeyboardInterrupt, SystemExit):
-    pass
+    should_quit = True
   if count > 0:
     print_info(f"Saving changes to {filepath}...")
     po.save()
