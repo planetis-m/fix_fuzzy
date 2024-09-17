@@ -114,7 +114,10 @@ def edit_msgstr(entry, filepath):
     print_subheader("Previous message")
     print_old_message(old_msgid, new_msgid)
     if old_msgid_plural:
-      print_old_message(old_msgid_plural, new_msgid_plural)
+      if new_msgid_plural:
+        print_old_message(old_msgid_plural, new_msgid_plural)
+      else:
+        print(old_msgid_plural)
   print_subheader("New message")
   if old_msgid:
     print_new_message(old_msgid, new_msgid)
@@ -169,7 +172,7 @@ def edit_msgstr(entry, filepath):
         restore_original(entry)
         return False
   except BaseException:
-    print_info("\nEditing interrupted. Reverting...")
+    print_info("\nEditing interrupted. Exiting...")
     restore_original(entry)
     raise
   return False # cannot happen
