@@ -26,13 +26,11 @@ translation review process and enhances overall text consistency.
 
 ### Fuzzy Editor Tool
 
-A new editor tool has been added that allows for interactive processing
-of the .po files.
-
-## Installation
+An editor tool that allows for interactive processing of the .po files.
 
 <img src="screenshots/image_2.png" alt="Screenshot of Editor" width="50%" />
 
+## Installation
 ### Prerequisites
 
 - Python 3.x
@@ -104,6 +102,6 @@ When using the Editor, you'll see the currently selected fuzzy entry and the fol
 #### Editing Notes:
 
 - Press Enter to add a newline
-- Press Ctrl+E to open the system's default editor ($EDITOR)
 - Press Esc and then Enter to save the current change and continue to the next entry
+- Press Ctrl+E to open the system's default editor ($EDITOR)
 - Press Ctrl+C at any time to exit the program, saving current progress
