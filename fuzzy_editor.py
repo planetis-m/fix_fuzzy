@@ -122,7 +122,8 @@ def edit_msgstr(entry, filepath):
         else:
           print_change("No changes made.")
         sec_to_skip = 3
-        pause_action = input_with_timeout(f"\nSaving in {sec_to_skip}s...", sec_to_skip)
+        pause_action = \
+          input_with_timeout(f"\nSaving in {sec_to_skip}s... (Press ENTER to interrupt)", sec_to_skip)
         if not pause_action:
           if is_msgstr_plural:
             entry.msgstr_plural[0] = new_msgstr
@@ -237,4 +238,4 @@ def parse_args():
 
 if __name__ == "__main__":
   args = parse_args()
-  scan_directory(args.directory, args.comparison_type, args.max_char_diff, args.no_comparison)
+  scan_directory(args.directory, args.filter_type, args.max_char_diff, args.no_filter)

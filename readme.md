@@ -69,22 +69,41 @@ of the .po files.
    ```
 
 ## Usage
+### Repair Tool
+
+The Repair Tool automatically fixes fuzzy entries and saves the results.
 
 ```sh
-# Repair Tool
 python fuzzy_repair_tool.py /path/to/directory
-# ...works automatically saving the results.
-
-# Editor
-# Filters which fuzzy entries to edit based on the available options:
-# --filter-type whitespace_punctuation | character_difference
-# --no-filter
-# --max-char-diff N (default 2)
-python fyzzy_editor.py /path/to/directory
-# You will be greeted with a view of the currently selected
-# fuzzy entry and the following options: [E]dit, [W]rite, or [S]kip
-#
-# Notes:
-# Pressing Ctrl+E during editing will open the system $EDITOR
-# Ctrl+C will exit the program, saving current progress.
 ```
+
+### Editor
+
+The Editor allows you to manually review and edit fuzzy entries.
+
+```sh
+python fuzzy_editor.py /path/to/directory [options]
+```
+
+#### Options:
+
+- `--filter-type`: Choose the filtering method
+  - `whitespace_punctuation`: Filter based on whitespace and punctuation
+  - `character_difference`: Filter based on character differences
+- `--no-filter`: Disable filtering
+- `--max-char-diff N`: Set maximum character difference (default: 2)
+
+#### Editor Interface:
+
+When using the Editor, you'll see the currently selected fuzzy entry and the following options:
+
+- `[E]dit`: Edit the current entry
+- `[W]rite`: Save changes and move to the next entry
+- `[S]kip`: Skip the current entry without changes
+
+#### Editing Notes:
+
+- Press Enter to add a newline
+- Press Ctrl+E to open the system's default editor ($EDITOR)
+- Press Esc and then Enter to save the current change and continue to the next entry
+- Press Ctrl+C at any time to exit the program, saving current progress
