@@ -160,15 +160,12 @@ def apply_case_change(old_msgid, new_msgid, msgstr):
     return (True, msgstr)
   return (False, msgstr)
 
-def is_trivial_change(old, new):
-  """
-  Detect if the change is trivial based on normalization (case, punctuation, whitespace changes).
-  Return True if the change is trivial.
-  """
-  normalized_old = normalize_string(old)
-  normalized_new = normalize_string(new)
+def is_trivial_change(str1, str2):
+  """Check if two strings differ only by whitespace and punctuation."""
+  normalized_str1 = normalize_string(str1)
+  normalized_str2 = normalize_string(str2)
 
-  return normalized_old == normalized_new
+  return normalized_str1 == normalized_str2
 
 def normalize_string(s):
   """Normalize a string by lowercasing, removing punctuation, and normalizing whitespace."""

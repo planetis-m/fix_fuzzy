@@ -1,32 +1,13 @@
 import os
 import polib
-import tempfile
-import subprocess
 from termcolor import colored
 from difflib import SequenceMatcher
 from prompt_toolkit import prompt
+import string
 import select
 import sys
 import time
-
-def open_editor_with_content(initial_content):
-  """Open the user's default editor to edit multiline text."""
-  # Create a temporary file
-  with tempfile.NamedTemporaryFile(suffix=".tmp", mode='w+', delete=False) as tmp_file:
-    # Write initial content (the current msgstr) to the temporary file
-    tmp_file.write(initial_content)
-    tmp_file_name = tmp_file.name
-  # Try to get the user's default editor from environment variables, fallback to 'nano'
-  editor = os.environ.get('EDITOR', 'nano')
-  # Open the temporary file in the editor
-  subprocess.call([editor, tmp_file_name])
-  # After the user closes the editor, read the file back
-  with open(tmp_file_name, 'r') as tmp_file:
-    edited_content = tmp_file.read()
-  # Clean up the temporary file
-  os.remove(tmp_file_name)
-
-  return edited_content.rstrip('\n')
+import argparse
 
 def colored_inline_diff(str1, str2):
   # Create a SequenceMatcher object
@@ -69,7 +50,7 @@ def input_with_timeout(prompt, timeout=10):
 
 def line_print(width=80):
   line = "─" * width
-  print(colored(line, "light_grey", attrs=['dark']))
+  print(colored(line, "light_grey"))
 
 def prefill_input(prompt_text, default_text):
   """
@@ -123,63 +104,129 @@ def edit_msgstr(entry, filepath):
     print(entry.msgstr_plural[1])
 
   # Prompt the user for action (edit, write, or skip)
-  while True:
-    action = input("\nChoose an action - [E]dit, [W]rite, or [S]kip: ").strip().lower()
-    if action == 'e':
-      new_msgstr = prefill_input("msgstr[0]" if is_msgstr_plural else "msgstr", current_msgstr)
-      new_msgstr_plural = None
-      if is_msgstr_plural:
-        new_msgstr_plural = prefill_input("msgstr[1]", entry.msgstr_plural[1])
-      # Update the msgstr if it was edited
-      if current_msgstr != new_msgstr or \
-          (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
-        print_change(f"Entry updated manually:")
-        colored_inline_diff(current_msgstr, new_msgstr)
+  try:
+    while True:
+      action = input("\nChoose an action - [E]dit, [W]rite, or [S]kip: ").strip().lower()
+      if action == 'e':
+        new_msgstr = prefill_input("msgstr[0]" if is_msgstr_plural else "msgstr", current_msgstr)
+        new_msgstr_plural = None
         if is_msgstr_plural:
-          colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
-      else:
-        print_change("No changes made.")
-      sec_to_skip = 3
-      pause_action = input_with_timeout(f"\nSaving in {sec_to_skip}s...", sec_to_skip)
-      if not pause_action:
-        if is_msgstr_plural:
-          entry.msgstr_plural[0] = new_msgstr
-          entry.msgstr_plural[1] = new_msgstr_plural
+          new_msgstr_plural = prefill_input("msgstr[1]", entry.msgstr_plural[1])
+        # Update the msgstr if it was edited
+        if current_msgstr != new_msgstr or \
+            (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
+          print_change(f"Entry updated manually:")
+          colored_inline_diff(current_msgstr, new_msgstr)
+          if is_msgstr_plural:
+            colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
         else:
-          entry.msgstr = new_msgstr
+          print_change("No changes made.")
+        sec_to_skip = 3
+        pause_action = input_with_timeout(f"\nSaving in {sec_to_skip}s...", sec_to_skip)
+        if not pause_action:
+          if is_msgstr_plural:
+            entry.msgstr_plural[0] = new_msgstr
+            entry.msgstr_plural[1] = new_msgstr_plural
+          else:
+            entry.msgstr = new_msgstr
+          return True
+      elif action == 'w':
+        # Just save the current msgstr (possibly pre-applied changes)
         return True
-    elif action == 'w':
-      # Just save the current msgstr (possibly pre-applied changes)
-      return True
-    elif action == 's':
-      # Skip saving changes
-      restore_original(entry)
-      return False
+      elif action == 's':
+        # Skip saving changes
+        restore_original(entry)
+        return False
+  except Exception as e:
+    print_info("\nEdit interrupted. Reverting...")
+    restore_original(entry)
+    raise e
   return False # cannot happen
 
-def process_po_file(filepath):
+def process_po_file(filepath, comparison_type, max_char_diff, no_comparison):
   """Process the .po file and handle fuzzy entries."""
   po = polib.pofile(filepath, encoding='utf-8', wrapwidth=80)
   count = 0
-  for entry in po.fuzzy_entries():
-    if edit_msgstr(entry, filepath):
-      count += 1
-      entry.flags.remove('fuzzy')  # Remove the fuzzy flag
+  try:
+    for entry in po.fuzzy_entries():
+      if no_comparison or should_edit_entry(entry, comparison_type, max_char_diff):
+        if edit_msgstr(entry, filepath):
+          count += 1
+          entry.flags.remove('fuzzy')  # Remove the fuzzy flag
+  except (KeyboardInterrupt, SystemExit):
+    pass
   if count > 0:
     print_info(f"Saving changes to {filepath}...")
     po.save()
   return count
 
-def scan_directory(directory):
+def scan_directory(directory, comparison_type, max_char_diff, no_comparison):
   """Scan the directory for .po files and process them."""
   count = 0
   for root, _, files in os.walk(directory):
     for file in files:
       if file.endswith('.po'):
         filepath = os.path.join(root, file)
-        count += process_po_file(filepath)
+        count += process_po_file(filepath, comparison_type, max_char_diff, no_comparison)
   print_info(f"Changes made: {count}")
 
+def should_edit_entry(entry, comparison_type, max_char_diff):
+  """Determine whether an entry should be edited based on comparison type."""
+  previous_msgid = entry.previous_msgid
+  msgid = entry.msgid
+
+  if previous_msgid is None or msgid is None:
+    return False
+
+  if comparison_type == 'whitespace_punctuation':
+    return strings_differ_by_whitespace_and_punctuation(previous_msgid, msgid)
+  elif comparison_type == 'character_difference':
+    return strings_differ_by_n_chars(previous_msgid, msgid, max_char_diff)
+  return False
+
+def strings_differ_by_whitespace_and_punctuation(str1, str2):
+  """Check if two strings differ only by whitespace and punctuation."""
+  normalized_str1 = normalize_string(str1)
+  normalized_str2 = normalize_string(str2)
+
+  return normalized_str1 == normalized_str2
+
+def normalize_string(s):
+  """Normalize a string by lowercasing, removing punctuation, and normalizing whitespace."""
+  normalized = []
+  prev_char = None
+  punctuation = string.punctuation + "…"
+  for ch in s:
+    if ch in punctuation:
+      continue  # Skip punctuation
+    if ch.isspace():
+      # Only append a single space when encountering multiple spaces
+      if prev_char != ' ':
+        normalized.append(' ')
+      prev_char = ' '
+    else:
+      normalized.append(ch.lower())
+      prev_char = ch.lower()
+  return ''.join(normalized).strip()
+
+def strings_differ_by_n_chars(str1, str2, max_char_diff):
+  """Check if two strings differ by no more than N characters."""
+  # Use SequenceMatcher to compute the similarity ratio
+  matcher = SequenceMatcher(None, str1, str2)
+  # Get the number of character differences
+  diff_chars = int((1 - matcher.ratio()) * max(len(str1), len(str2)))
+  return diff_chars <= max_char_diff
+
+def parse_args():
+  parser = argparse.ArgumentParser(description="Process .po files and handle fuzzy entries.")
+  parser.add_argument('directory', help="The directory to scan for .po files.")
+  parser.add_argument('--comparison-type', choices=['whitespace_punctuation', 'character_difference'],
+                      default='whitespace_punctuation', help="The type of comparison to use.")
+  parser.add_argument('--max-char-diff', type=int, default=2,
+                      help="The maximum number of character differences allowed (used only with 'character_difference').")
+  parser.add_argument('--no-comparison', action='store_true', help="Disable comparison checks and edit all fuzzy entries.")
+  return parser.parse_args()
+
 if __name__ == "__main__":
-  directory = input("Enter the directory to scan for .po files: ").strip()
-  scan_directory(directory)
+  args = parse_args()
+  scan_directory(args.directory, args.comparison_type, args.max_char_diff, args.no_comparison)
