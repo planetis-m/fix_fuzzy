@@ -1,4 +1,4 @@
-## Translation Assistance Tools:
+## Translation Assistance Tools
 ### Fuzzy Message Repair Tool
 
 This Python script helps improve the quality of translated content
@@ -22,7 +22,7 @@ It offers several automated fixes:
 By automating these common adjustments, this tool streamlines the
 translation review process and enhances overall text consistency.
 
-<img src="screenshots/image_1.png" alt="Screenshot" width="50%" />
+<img src="screenshots/image_1.png" alt="Screenshot of Repair Tool" width="50%" />
 
 ### Fuzzy Editor Tool
 
@@ -30,6 +30,8 @@ A new editor tool has been added that allows for interactive processing
 of the .po files.
 
 ## Installation
+
+<img src="screenshots/image_2.png" alt="Screenshot of Editor" width="50%" />
 
 ### Prerequisites
 
@@ -69,7 +71,20 @@ of the .po files.
 ## Usage
 
 ```sh
+# Repair Tool
 python fuzzy_repair_tool.py /path/to/directory
+# ...works automatically saving the results.
 
+# Editor
+# Filters which fuzzy entries to edit based on the available options:
+# --filter-type whitespace_punctuation | character_difference
+# --no-filter
+# --max-char-diff N (default 2)
 python fyzzy_editor.py /path/to/directory
+# You will be greeted with a view of the currently selected
+# fuzzy entry and the following options: [E]dit, [W]rite, or [S]kip
+#
+# Notes:
+# Pressing Ctrl+E during editing will open the system $EDITOR
+# Ctrl+C will exit the program, saving current progress.
 ```

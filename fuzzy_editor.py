@@ -228,11 +228,11 @@ def strings_differ_by_n_chars(str1, str2, max_char_diff):
 def parse_args():
   parser = argparse.ArgumentParser(description="An interactive editor for fuzzy translation entries in .po files.")
   parser.add_argument('directory', help="The directory to scan for .po files.")
-  parser.add_argument('--comparison-type', choices=['whitespace_punctuation', 'character_difference'],
+  parser.add_argument('--filter-type', choices=['whitespace_punctuation', 'character_difference'],
                       default='whitespace_punctuation', help="The type of comparison to use.")
   parser.add_argument('--max-char-diff', type=int, default=2,
                       help="The maximum number of character differences allowed (used only with 'character_difference').")
-  parser.add_argument('--no-comparison', action='store_true', help="Disable comparison checks and edit all fuzzy entries.")
+  parser.add_argument('--no-filter', action='store_true', help="Disable comparison checks and edit all fuzzy entries.")
   return parser.parse_args()
 
 if __name__ == "__main__":
