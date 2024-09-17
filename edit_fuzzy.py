@@ -137,7 +137,7 @@ def edit_msgstr(entry, filepath):
         # Skip saving changes
         restore_original(entry)
         return False
-  except (KeyboardInterrupt, SystemExit):
+  except BaseException:
     print_info("\nEditing interrupted. Reverting...")
     restore_original(entry)
     raise
