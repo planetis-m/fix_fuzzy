@@ -10,7 +10,11 @@ import time
 import argparse
 
 def highlight_spaces(text):
-  return ''.join('·' if c == ' ' else '↵\n' if c == '\n' else c for c in text)
+  translation_table = str.maketrans({
+    ' ': '·',
+    '\n': '↵\n'
+  })
+  return text.translate(translation_table)
 
 def colored_inline_diff(str1, str2):
   # Create a SequenceMatcher object
