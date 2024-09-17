@@ -111,11 +111,11 @@ def edit_msgstr(entry, filepath):
       entry.msgstr_plural = original_msgstr_plural
 
   if old_msgid:
-    print_subheader("Previous message:")
+    print_subheader("Previous message")
     print_old_message(old_msgid, new_msgid)
     if old_msgid_plural:
       print_old_message(old_msgid_plural, new_msgid_plural)
-  print_subheader("New message:")
+  print_subheader("New message")
   if old_msgid:
     print_new_message(old_msgid, new_msgid)
   else:
