@@ -63,6 +63,9 @@ def print_change(text, **kwargs):
 def print_unchanged(text, **kwargs):
   print(colored(f"  ↳ {text}", "dark_grey"), **kwargs)
 
+def print_context(text,  **kwargs):
+  print(colored(f"{text}", "white", attrs=["dark"]))
+
 def input_with_timeout(prompt, timeout=10):
   print_info(prompt, end='', flush=True)
   rlist, _, _ = select.select([sys.stdin], [], [], timeout)
@@ -77,13 +80,7 @@ def line_print(width=80):
   print(colored(line, "light_grey"))
 
 def prefill_input(prompt_text, default_text):
-  """
-  Get user input with a prefilled default text. Multiline input supported.
-
-  Keybindings:
-    - Esc and then Enter to accept input.
-    - Ctrl-E to open the input in an external editor.
-  """
+  """Get user input with a prefilled default text. Multiline input supported."""
   line_print()
   result = prompt(f"{prompt_text}:\n", default=default_text, multiline=True,
                   enable_open_in_editor=True, tempfile_suffix=".txt")
@@ -110,6 +107,14 @@ def edit_msgstr(entry, filepath):
     if original_msgstr_plural:
       entry.msgstr_plural = original_msgstr_plural
 
+  if entry.msgctxt:
+    print_context(f" ─ {entry.msgctxt}")
+    if entry.previous_msgctxt:
+      if entry.msgctxt != entry.previous_msgctxt:
+        print_context(f"  ↳ (previous: {entry.previous_msgctxt})")
+      else:
+        print_context("  ↳ (matches previous)\n")
+
   if old_msgid:
     print_subheader("Previous message")
     print_old_message(old_msgid, new_msgid)
@@ -129,7 +134,7 @@ def edit_msgstr(entry, filepath):
     else:
       print(new_msgid_plural)
   # Show the current msgstr
-  print_subheader("Translation:")
+  print_subheader("Translation")
   current_msgstr = entry.msgstr_plural[0] if entry.msgstr_plural else entry.msgstr
   print(current_msgstr)
   is_msgstr_plural = bool(entry.msgstr_plural) and 1 in entry.msgstr_plural
@@ -140,7 +145,7 @@ def edit_msgstr(entry, filepath):
   try:
     while True:
       action = input("\nChoose an action - [E]dit, [W]rite, or [S]kip: ").strip().lower()
-      if action == 'e':
+      if action in ['e', 'ε']:
         new_msgstr = prefill_input("msgstr[0]" if is_msgstr_plural else "msgstr", current_msgstr)
         new_msgstr_plural = None
         if is_msgstr_plural:
@@ -154,7 +159,7 @@ def edit_msgstr(entry, filepath):
             colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)
         else:
           print_change("No changes made.")
-        sec_to_skip = 3
+        sec_to_skip = 2
         pause_action = \
           input_with_timeout(f"\nSaving in {sec_to_skip}s... (Press ENTER to interrupt)", sec_to_skip)
         if not pause_action:
@@ -164,10 +169,10 @@ def edit_msgstr(entry, filepath):
           else:
             entry.msgstr = new_msgstr
           return True
-      elif action == 'w':
-        # Just save the current msgstr (possibly pre-applied changes)
+      elif action in ['w', 'ς']:
+        # Just save the current msgstr
         return True
-      elif action == 's':
+      elif action in ['s', 'σ']:
         # Skip saving changes
         restore_original(entry)
         return False
