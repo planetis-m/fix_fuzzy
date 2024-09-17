@@ -138,7 +138,7 @@ def edit_msgstr(entry, filepath):
         restore_original(entry)
         return False
   except Exception as e:
-    print_info("\nEdit interrupted. Reverting...")
+    print_info("\nEditing interrupted. Reverting...")
     restore_original(entry)
     raise e
   return False # cannot happen
@@ -147,6 +147,8 @@ def process_po_file(filepath, comparison_type, max_char_diff, no_comparison):
   """Process the .po file and handle fuzzy entries."""
   po = polib.pofile(filepath, encoding='utf-8', wrapwidth=80)
   count = 0
+  should_quit = False  # Flag to indicate if we should break out of the loop
+
   try:
     for entry in po.fuzzy_entries():
       if no_comparison or should_edit_entry(entry, comparison_type, max_char_diff):
@@ -158,17 +160,23 @@ def process_po_file(filepath, comparison_type, max_char_diff, no_comparison):
   if count > 0:
     print_info(f"Saving changes to {filepath}...")
     po.save()
-  return count
+  return count, should_quit
 
 def scan_directory(directory, comparison_type, max_char_diff, no_comparison):
   """Scan the directory for .po files and process them."""
-  count = 0
+  total_count = 0
   for root, _, files in os.walk(directory):
+    should_quit = False
     for file in files:
       if file.endswith('.po'):
         filepath = os.path.join(root, file)
-        count += process_po_file(filepath, comparison_type, max_char_diff, no_comparison)
-  print_info(f"Changes made: {count}")
+        count, should_quit = process_po_file(filepath, comparison_type, max_char_diff, no_comparison)
+        total_count += count
+        if should_quit:
+          break
+    if should_quit:
+      break
+  print_info(f"Changes made: {total_count}")
 
 def should_edit_entry(entry, comparison_type, max_char_diff):
   """Determine whether an entry should be edited based on comparison type."""
