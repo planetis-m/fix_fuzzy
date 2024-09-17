@@ -72,10 +72,15 @@ def line_print(width=80):
   print(colored(line, "light_grey", attrs=['dark']))
 
 def prefill_input(prompt_text, default_text):
-  # Keybindings: Esc and later Enter to accept, Control+E to enter in editor
-  # Define custom style
+  """
+  Get user input with a prefilled default text. Multiline input supported.
+
+  Keybindings:
+    - Esc and then Enter to accept input.
+    - Ctrl-E to open the input in an external editor.
+  """
   line_print()
-  result = prompt(f"{prompt_text}\n> ", default=default_text, multiline=True,
+  result = prompt(f"{prompt_text}:\n", default=default_text, multiline=True,
                   enable_open_in_editor=True, tempfile_suffix=".txt")
   line_print()
   return result
