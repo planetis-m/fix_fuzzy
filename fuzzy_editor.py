@@ -20,11 +20,9 @@ def colored_inline_diff(str1, str2):
     if op == 'equal':
       print(str1[i1:i2], end='')
     elif op == 'delete':
-      highlighted = highlight_spaces(str1[i1:i2])
-      print(colored(highlighted, 'white', 'on_red'), end='')
+      print(colored(highlight_spaces(str1[i1:i2]), 'white', 'on_red'), end='')
     elif op == 'insert':
-      highlighted = highlight_spaces(str2[j1:j2])
-      print(colored(highlighted, 'green'), end='')
+      print(colored(highlight_spaces(str2[j1:j2]), 'green'), end='')
     elif op == 'replace':
       print(colored(highlight_spaces(str1[i1:i2]), 'white', 'on_red') + \
           colored(highlight_spaces(str2[j1:j2]), 'green'), end='')
