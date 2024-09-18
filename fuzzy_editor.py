@@ -157,7 +157,7 @@ def edit_msgstr(entry, filepath):
         # Update the msgstr if it was edited
         if current_msgstr != new_msgstr or \
             (is_msgstr_plural and entry.msgstr_plural[1] != new_msgstr_plural):
-          print_change(f"Entry updated manually:")
+          print_change(f"Entry updated:")
           colored_inline_diff(current_msgstr, new_msgstr)
           if is_msgstr_plural:
             colored_inline_diff(entry.msgstr_plural[1], new_msgstr_plural)

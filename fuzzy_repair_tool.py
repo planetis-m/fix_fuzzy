@@ -75,7 +75,7 @@ def assign_ampersand_randomly(msgstr, ampersands_to_add):
   Penalize common Greek letters and exclude vowels with diacritics.
   """
   # Filter out excluded vowels and create a list of unique letters in the msgstr
-  unique_letters = [ch for ch in set(msgstr.lower()) if ch not in EXCLUDED_LETTERS and ch.isalpha()]
+  unique_letters = [ch for ch in set(msgstr.lower()) if ch.isalpha() and ch not in EXCLUDED_LETTERS]
 
   if not unique_letters:
     # No valid letters to assign ampersands, return unchanged msgstr
