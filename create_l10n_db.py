@@ -7,6 +7,9 @@ import polib
 # Define the root directory containing the 'messages' folder
 base_dir = "messages"  # Replace with your actual path
 
+# Define a directory to skip
+skip_dir = 'gcompris'
+
 # Define the path for the SQLite database
 database_path = "kde_l10n_el.db"  # Replace with desired DB path
 
@@ -54,7 +57,7 @@ def create_indexes(conn):
   cursor.execute("CREATE INDEX IF NOT EXISTS idx_untranslated ON translations(approved, fuzzy, obsolete)") # untranslated_entries()
   conn.commit()
 
-def parse_po_files(base_dir, conn):
+def parse_po_files(base_dir, skip_dir, conn):
   """
   Walk through the root directory, parse .po files, and insert entries into the database.
   """
@@ -71,7 +74,9 @@ def parse_po_files(base_dir, conn):
   entries = []
   total_inserted = 0
 
-  for root, _, files in os.walk(base_dir):
+  for root, dirs, files in os.walk(base_dir):
+    if skip_dir in dirs:
+      dirs.remove(skip_dir)
     for file in files:
       if file.endswith('.po'):
         file_path = os.path.join(root, file)
@@ -82,6 +87,8 @@ def parse_po_files(base_dir, conn):
           print(f"Error parsing {file_path}: {e}")
           continue
         for entry in po:
+          if entry.msgctxt:
+            if entry.msgctxt in ["NAME OF TRANSLATORS", "EMAIL OF TRANSLATORS"]: continue
           # Handle msgstr_plural and msgstr
           msgstr = entry.msgstr
           if entry.msgstr_plural:
@@ -138,7 +145,7 @@ def main():
     print("Setting up the database...")
     create_database(conn)
     print("Parsing and inserting data...")
-    parse_po_files(base_dir, conn)
+    parse_po_files(base_dir, skip_dir, conn)
     print("Creating indexes...")
     create_indexes(conn)
     print("Database population complete.")
