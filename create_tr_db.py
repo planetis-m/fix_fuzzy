@@ -49,9 +49,9 @@ def create_indexes(conn):
   cursor = conn.cursor()
   cursor.execute("CREATE INDEX IF NOT EXISTS idx_project ON translations(project)")
   cursor.execute("CREATE INDEX IF NOT EXISTS idx_filename ON translations(filename)")
-  cursor.execute("CREATE INDEX IF NOT EXISTS idx_translated ON translations(approved)")
-  cursor.execute("CREATE INDEX IF NOT EXISTS idx_fuzzy_obsolete ON translations(fuzzy, obsolete)")
-  # cursor.execute("CREATE INDEX IF NOT EXISTS idx_untranslated ON translations(approved, fuzzy, obsolete)") # untranslated
+  cursor.execute("CREATE INDEX IF NOT EXISTS idx_translated ON translations(approved)") # translated_entries()
+  cursor.execute("CREATE INDEX IF NOT EXISTS idx_fuzzy_obsolete ON translations(fuzzy, obsolete)") # fuzzy_entries()
+  cursor.execute("CREATE INDEX IF NOT EXISTS idx_untranslated ON translations(approved, fuzzy, obsolete)") # untranslated_entries()
   conn.commit()
 
 def parse_po_files(base_dir, conn):
@@ -95,7 +95,7 @@ def parse_po_files(base_dir, conn):
           is_fuzzy = 'fuzzy' in entry.flags
           # Determine the translated status
           is_approved = bool(msgstr) and not (is_fuzzy or entry.obsolete) and \
-              bool(self.msgstr_plural) == bool(msgstr_plural) # XNOR
+              bool(entry.msgstr_plural) == bool(msgstr_plural) # XNOR
           # Prepare the entry tuple
           entry = (
             project,
