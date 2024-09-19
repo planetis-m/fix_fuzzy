@@ -7,9 +7,6 @@ import polib
 # Define the root directory containing the 'messages' folder
 base_dir = "messages"  # Replace with your actual path
 
-# Define a directory to skip
-skip_dir = 'gcompris'
-
 # Define the path for the SQLite database
 database_path = "kde_l10n_el.db"  # Replace with desired DB path
 
@@ -57,7 +54,7 @@ def create_indexes(conn):
   cursor.execute("CREATE INDEX IF NOT EXISTS idx_untranslated ON translations(approved, fuzzy, obsolete)") # untranslated_entries()
   conn.commit()
 
-def parse_po_files(base_dir, skip_dir, conn):
+def parse_po_files(base_dir, conn, skip_dir_callback=None, skip_entry_callback=None):
   """
   Walk through the root directory, parse .po files, and insert entries into the database.
   """
@@ -75,8 +72,9 @@ def parse_po_files(base_dir, skip_dir, conn):
   total_inserted = 0
 
   for root, dirs, files in os.walk(base_dir):
-    if skip_dir in dirs:
-      dirs.remove(skip_dir)
+    # Modify the dirs list in place using the callback
+    if skip_dir_callback:
+      skip_dir_callback(dirs)
     for file in files:
       if file.endswith('.po'):
         file_path = os.path.join(root, file)
@@ -87,8 +85,9 @@ def parse_po_files(base_dir, skip_dir, conn):
           print(f"Error parsing {file_path}: {e}")
           continue
         for entry in po:
-          if entry.msgctxt:
-            if entry.msgctxt in ["NAME OF TRANSLATORS", "EMAIL OF TRANSLATORS"]: continue
+          # Skip entries based on the provided callback
+          if skip_entry_callback and skip_entry_callback(entry):
+            continue
           # Handle msgstr_plural and msgstr
           msgstr = entry.msgstr
           if entry.msgstr_plural:
@@ -138,6 +137,17 @@ def parse_po_files(base_dir, skip_dir, conn):
 
 # ----------------------------- Main Function ----------------------------- #
 
+# Skip directory callback function
+def skip_dir_cb(dirs):
+  skip_dir = 'gcompris'
+  if skip_dir in dirs:
+    dirs.remove(skip_dir)
+
+# Skip entry callback function
+def skip_entry_cb(entry):
+  skip_contexts = ["NAME OF TRANSLATORS", "EMAIL OF TRANSLATORS", "@info:credit"]
+  return entry.msgctxt in skip_contexts
+
 def main():
   # Connect to the SQLite database
   conn = sqlite3.connect(database_path)
@@ -145,7 +155,7 @@ def main():
     print("Setting up the database...")
     create_database(conn)
     print("Parsing and inserting data...")
-    parse_po_files(base_dir, skip_dir, conn)
+    parse_po_files(base_dir, conn, skip_dir_cb, skip_entry_cb)
     print("Creating indexes...")
     create_indexes(conn)
     print("Database population complete.")
