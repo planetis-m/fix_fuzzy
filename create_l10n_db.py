@@ -87,7 +87,8 @@ def parse_po_files(base_dir, conn):
           if entry.msgstr_plural:
             msgstr = entry.msgstr_plural[0]
           msgstr_plural = None
-          if entry.msgstr_plural and 1 in entry.msgstr_plural:
+          is_msgstr_plural = bool(entry.msgstr_plural) and 1 in entry.msgstr_plural
+          if is_msgstr_plural:
             msgstr_plural = entry.msgstr_plural[1]
           # Serialize occurrences as comma-separated string
           occurrences = ','.join(f"{source_file}:{linenum}" for source_file, linenum in entry.occurrences)
@@ -95,7 +96,7 @@ def parse_po_files(base_dir, conn):
           is_fuzzy = 'fuzzy' in entry.flags
           # Determine the translated status
           is_approved = bool(msgstr) and not (is_fuzzy or entry.obsolete) and \
-              bool(entry.msgstr_plural) == bool(msgstr_plural) # XNOR
+              is_msgstr_plural == bool(msgstr_plural) # XNOR
           # Prepare the entry tuple
           entry = (
             project,
