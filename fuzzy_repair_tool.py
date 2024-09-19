@@ -147,13 +147,22 @@ def apply_trailing_change(old_msgid, new_msgid, msgstr):
   return (True, msgstr)
 
 def apply_case_change(old_msgid, new_msgid, msgstr):
+  def first_alpha_index(s):
+    # Find the first index of an alphabetic character
+    for i, ch in enumerate(s):
+      if ch.isalpha(): return i
+    return -1
   def sentence_case(s):
-    return s[0].upper() + s[1:].lower()
+    # Check if the first character is '&' or a non-alphabetic symbol
+    first_index = first_alpha_index(s)
+    if first_index == -1: return s
+    return s[:first_index] + s[first_index:].capitalize()
   # Check if new_str is the sentence-cased version of old_msgid
   if sentence_case(old_msgid) == new_msgid:
     # Apply the same sentence casing to msg
     return (True, sentence_case(msgstr))
-  if new_msgid[0].islower():
+  first_index_new = first_alpha_index(new_msgid)
+  if first_index_new != -1 and new_msgid[first_index_new].islower():
     # Apply lowercase to all letters in msgstr
     return (True, msgstr.lower())
   if old_msgid == sentence_case(new_msgid):
