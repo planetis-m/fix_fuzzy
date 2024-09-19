@@ -35,6 +35,7 @@ def create_database(conn):
     previous_msgid TEXT,
     previous_msgid_plural TEXT,
     linenum INTEGER,
+    approved BOOLEAN,
     fuzzy BOOLEAN,
     obsolete BOOLEAN
   )
@@ -48,8 +49,8 @@ def create_indexes(conn):
   cursor = conn.cursor()
   cursor.execute("CREATE INDEX IF NOT EXISTS idx_project ON translations(project)")
   cursor.execute("CREATE INDEX IF NOT EXISTS idx_filename ON translations(filename)")
-  cursor.execute("CREATE INDEX IF NOT EXISTS idx_fuzzy ON translations(fuzzy)")
-  cursor.execute("CREATE INDEX IF NOT EXISTS idx_obsolete ON translations(obsolete)")
+  cursor.execute("CREATE INDEX IF NOT EXISTS idx_translated ON translations(approved)")
+  cursor.execute("CREATE INDEX IF NOT EXISTS idx_fuzzy_obsolete ON translations(fuzzy, obsolete)")
   conn.commit()
 
 def parse_po_files(base_dir, conn):
@@ -62,9 +63,9 @@ def parse_po_files(base_dir, conn):
   INSERT INTO translations (
     project, filename, msgid, msgstr, msgid_plural, msgstr_plural,
     msgctxt, occurrences, previous_msgctxt, previous_msgid,
-    previous_msgid_plural, linenum, fuzzy, obsolete
+    previous_msgid_plural, linenum, approved, fuzzy, obsolete
   )
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   '''
   entries = []
   total_inserted = 0
@@ -91,6 +92,8 @@ def parse_po_files(base_dir, conn):
           occurrences = ','.join(f"{source_file}:{linenum}" for source_file, linenum in entry.occurrences)
           # Determine if 'fuzzy' flag is present
           is_fuzzy = 'fuzzy' in entry.flags
+          # Determine the translated status
+          is_approved = bool(msgstr) and not (is_fuzzy or entry.obsolete)
           # Prepare the entry tuple
           entry = (
             project,
@@ -105,6 +108,7 @@ def parse_po_files(base_dir, conn):
             entry.previous_msgid,
             entry.previous_msgid_plural,
             entry.linenum,
+            is_approved,
             is_fuzzy,
             entry.obsolete
           )
