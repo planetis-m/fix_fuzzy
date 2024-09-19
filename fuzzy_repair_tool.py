@@ -85,7 +85,7 @@ def assign_ampersand_randomly(msgstr, ampersands_to_add):
   letter_weights = []
   for letter in unique_letters:
     penalty = GREEK_LETTER_PENALTIES.get(letter, 1)  # Higher penalty for common letters
-    letter_weights.extend(int(100 / penalty))  # More penalty = fewer chances
+    letter_weights.append(int(100 / penalty))  # More penalty = fewer chances
 
   # Randomly assign ampersands to letters in msgstr
   for _ in range(ampersands_to_add):

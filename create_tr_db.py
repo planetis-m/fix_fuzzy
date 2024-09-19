@@ -50,8 +50,6 @@ def create_indexes(conn):
   cursor.execute("CREATE INDEX IF NOT EXISTS idx_filename ON translations(filename)")
   cursor.execute("CREATE INDEX IF NOT EXISTS idx_fuzzy ON translations(fuzzy)")
   cursor.execute("CREATE INDEX IF NOT EXISTS idx_obsolete ON translations(obsolete)")
-  cursor.execute("CREATE INDEX IF NOT EXISTS idx_msgid ON translations(msgid)")
-  cursor.execute("CREATE INDEX IF NOT EXISTS idx_msgstr ON translations(msgstr)")
   conn.commit()
 
 def parse_po_files(base_dir, conn):
