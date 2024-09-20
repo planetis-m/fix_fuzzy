@@ -197,6 +197,8 @@ def process_po_file(filepath, comparison_type, max_char_diff, no_comparison):
       if no_comparison or should_edit_entry(entry, comparison_type, max_char_diff):
         if edit_msgstr(entry, filepath):
           count += 1
+          # entry.previous_msgid = None
+          # entry.previous_msgid_plural = None
           entry.flags.remove('fuzzy')  # Remove the fuzzy flag
   except (KeyboardInterrupt, SystemExit):
     should_quit = True

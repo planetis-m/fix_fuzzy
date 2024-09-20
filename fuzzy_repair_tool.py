@@ -104,9 +104,9 @@ def insert_ampersand_before_letter(msgstr, letter):
   if lower_index == -1 and upper_index == -1:
     return msgstr # cannot happen
   elif lower_index == -1 or (upper_index != -1 and upper_index < lower_index):
-    return msgstr.replace(upper_letter, f'&{upper_letter}', 1)
+    return msgstr.replace(upper_letter, '&' + lower_letter, 1)
   else:
-    return msgstr.replace(lower_letter, f'&{lower_letter}', 1)
+    return msgstr.replace(lower_letter, '&' + lower_letter, 1)
 
 def detect_trailing_changes(old, new):
   """
@@ -152,11 +152,13 @@ def apply_case_change(old_msgid, new_msgid, msgstr):
     for i, ch in enumerate(s):
       if ch.isalpha(): return i
     return -1
+
   def sentence_case(s):
     # Check if the first character is '&' or a non-alphabetic symbol
     first_index = first_alpha_index(s)
     if first_index == -1: return s
     return s[:first_index] + s[first_index:].capitalize()
+
   # Check if new_str is the sentence-cased version of old_msgid
   if sentence_case(old_msgid) == new_msgid:
     # Apply the same sentence casing to msg
@@ -193,7 +195,7 @@ def normalize_string(s):
       prev_char = ' '
     else:
       normalized.append(ch.lower())
-      prev_char = ch.lower()
+      prev_char = ch
   return ''.join(normalized).strip()
 
 def colored_inline_diff(str1, str2):
@@ -344,6 +346,8 @@ def process_po_file(filepath):
   for entry in po.fuzzy_entries():
     if detect_and_preapply_changes(entry, filepath):
       count += 1
+      # entry.previous_msgid = None
+      # entry.previous_msgid_plural = None
       entry.flags.remove('fuzzy')  # Remove the fuzzy flag
   if count > 0:
     print_info(f"Saving changes to {filepath}...")
