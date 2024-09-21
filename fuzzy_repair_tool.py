@@ -346,6 +346,7 @@ def process_po_file(filepath):
   for entry in po.fuzzy_entries():
     if detect_and_preapply_changes(entry, filepath):
       count += 1
+      # entry.previous_msgctxt = None
       # entry.previous_msgid = None
       # entry.previous_msgid_plural = None
       entry.flags.remove('fuzzy')  # Remove the fuzzy flag
