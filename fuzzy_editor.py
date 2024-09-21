@@ -193,15 +193,18 @@ def process_po_file(filepath, comparison_type, max_char_diff, no_comparison):
   count = 0
   should_quit = False  # Flag to indicate if we should break out of the loop
 
+  def mark_entry_as_translated(entry):
+    entry.previous_msgctxt = None
+    entry.previous_msgid = None
+    entry.previous_msgid_plural = None
+    entry.flags.remove('fuzzy')  # Remove the fuzzy flag
+
   try:
     for entry in po.fuzzy_entries():
       if no_comparison or should_edit_entry(entry, comparison_type, max_char_diff):
         if edit_msgstr(entry, filepath):
           count += 1
-          entry.previous_msgctxt = None
-          entry.previous_msgid = None
-          entry.previous_msgid_plural = None
-          entry.flags.remove('fuzzy')  # Remove the fuzzy flag
+          reset_entry_attributes(entry)
   except (KeyboardInterrupt, SystemExit):
     should_quit = True
   if count > 0:
