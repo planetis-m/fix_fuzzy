@@ -354,7 +354,6 @@ def process_po_file(filepath):
     if detect_and_preapply_changes(entry, filepath):
       count += 1
       mark_entry_as_translated(entry)
-      entry.flags.remove('fuzzy')  # Remove the fuzzy flag
   if count > 0:
     print_info(f"Saving changes to {filepath}...")
     po.save()
@@ -371,7 +370,7 @@ def scan_directory(directory):
   print_info(f"Changes made: {count}")
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description="An automatic tool to repair fuzzy translation entries in .po files.")
+  parser = argparse.ArgumentParser(description="An automatic tool to repair fuzzy translations.")
   parser.add_argument("directory", help="The directory to scan for .po files.")
   args = parser.parse_args()
 
