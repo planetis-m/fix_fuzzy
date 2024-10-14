@@ -6,6 +6,11 @@ import argparse
 from termcolor import colored
 from difflib import SequenceMatcher
 
+# BUG:
+# <b>Environment Variables</b>
+#   ↳ Entry updated automatically:
+# <b>Μμεταβλητές περιβάλλοντος</b>
+
 # Letter Frequencies of the Greek language
 GREEK_LETTER_PENALTIES = {
   'α': 10.81, 'τ': 7.99, 'ο': 7.23, 'ε': 7.18, 'σ': 7.00, 'ι': 6.64,
