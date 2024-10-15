@@ -6,10 +6,14 @@ import argparse
 from termcolor import colored
 from difflib import SequenceMatcher
 
-# BUG:
-# <b>Environment Variables</b>
+# BUG 1
+# <b>Environment Variables</b> (same)
 #   ↳ Entry updated automatically:
 # <b>Μμεταβλητές περιβάλλοντος</b>
+# BUG 2
+# &Configure… (& and … added)
+#   ↳ Entry updated automatically:
+# Δ&διαμόρφωση… (uncapitalized)
 
 # Letter Frequencies of the Greek language
 GREEK_LETTER_PENALTIES = {
