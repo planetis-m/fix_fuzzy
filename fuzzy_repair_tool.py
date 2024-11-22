@@ -14,6 +14,11 @@ from difflib import SequenceMatcher
 # &Configure… (& and … added)
 #   ↳ Entry updated automatically:
 # Δ&διαμόρφωση… (uncapitalized)
+# msgid "Installation prefix:"
+# msgstr "&πρόθεμα εγκατάστασης:"
+# | msgid "directory"
+# msgid "Directory:" msgid "Directory:"
+# msgstr "κατάλογος" msgstr "κατάλογος:"
 
 # Letter Frequencies of the Greek language
 GREEK_LETTER_PENALTIES = {
