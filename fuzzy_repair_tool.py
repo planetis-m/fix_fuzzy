@@ -104,7 +104,8 @@ def insert_ampersand_before_letter(msgstr, letter):
   if lower_index == -1 and upper_index == -1:
     return msgstr # cannot happen
   elif lower_index == -1 or (upper_index != -1 and upper_index < lower_index):
-    return msgstr.replace(upper_letter, '&' + upper_letter if upper_index == 0 else lower_letter, 1)
+    is_start_or_latin = upper_index == 0 or ('A' <= upper_letter <= 'Z')
+    return msgstr.replace(upper_letter, '&' + upper_letter if is_start_or_latin else lower_letter, 1)
   else:
     return msgstr.replace(lower_letter, '&' + lower_letter, 1)
 
@@ -164,7 +165,7 @@ def apply_case_change(old_msgid, new_msgid, msgstr):
   def clean_string(s):
     # Remove ampersand anywhere
     s = s.replace('&', '')
-    # Remove trailing characters only from the end
+    # Remove trailing characters
     for char in ['...', '…', ': ', ':', '.', ', ', ',']:
       if s.endswith(char):
         s = s[:-len(char)]

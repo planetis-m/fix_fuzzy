@@ -7,25 +7,28 @@ msgid "Accessibility Inspector"
 msgstr "stuff"
 
 #: debug_console.cpp:461
-#, fuzzy, kde-format
-#| msgid "directory"
+#, kde-format
 msgctxt "@label"
 msgid "Directory:"
-msgstr "κατάλογος"
+msgstr "Κατάλογος:"
 
 #: debug_console.cpp:461
-#, fuzzy, kde-format
-#| msgid "<b>Environment Variables</b>"
+#, kde-format
 msgctxt "@label"
 msgid "<b>Environment Variables</b>"
 msgstr "<b>Μεταβλητές περιβάλλοντος</b>"
 
 #: debug_console.cpp:461
-#, fuzzy, kde-format
-#| msgid "Prefix:"
+#, kde-format
 msgctxt "@label"
 msgid "&Prefix:"
-msgstr "Ψρόεμα:"
+msgstr "&Ψρόεμα:"
+
+#. i18n: ectx: property (text), widget (QLabel, systemProxySocksLabel)
+#: proxy/kproxydlg.ui:525
+#, kde-format
+msgid "SOC&KS"
+msgstr "SO&CKS"
 
 #~ msgid "fuzzy_message"
 #~ msgstr "stig"
