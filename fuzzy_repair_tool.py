@@ -162,7 +162,13 @@ def apply_case_change(old_msgid, new_msgid, msgstr):
     return -1
 
   def clean_string(s):
-    return ''.join(ch for ch in s if ch.isalnum())
+    # Remove ampersand anywhere
+    s = s.replace('&', '')
+    # Remove trailing characters only from the end
+    for char in ['...', '…', ': ', ':', '.', ', ', ',']:
+      if s.endswith(char):
+        s = s[:-len(char)]
+    return s
 
   old_msgid = clean_string(old_msgid)
   new_msgid = clean_string(new_msgid)

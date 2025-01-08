@@ -1,0 +1,31 @@
+#
+msgid ""
+msgstr ""
+
+msgctxt "Name"
+msgid "Accessibility Inspector"
+msgstr "stuff"
+
+#: debug_console.cpp:461
+#, fuzzy, kde-format
+#| msgid "directory"
+msgctxt "@label"
+msgid "Directory:"
+msgstr "κατάλογος"
+
+#: debug_console.cpp:461
+#, fuzzy, kde-format
+#| msgid "<b>Environment Variables</b>"
+msgctxt "@label"
+msgid "<b>Environment Variables</b>"
+msgstr "<b>Μεταβλητές περιβάλλοντος</b>"
+
+#: debug_console.cpp:461
+#, fuzzy, kde-format
+#| msgid "Prefix:"
+msgctxt "@label"
+msgid "&Prefix:"
+msgstr "Ψρόεμα:"
+
+#~ msgid "fuzzy_message"
+#~ msgstr "stig"
