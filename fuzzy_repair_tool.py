@@ -6,20 +6,6 @@ import argparse
 from termcolor import colored
 from difflib import SequenceMatcher
 
-# BUG 1
-# <b>Environment Variables</b> (same)
-#   ↳ Entry updated automatically:
-# <b>Μμεταβλητές περιβάλλοντος</b>
-# BUG 2
-# &Configure… (& and … added)
-#   ↳ Entry updated automatically:
-# Δ&διαμόρφωση… (uncapitalized)
-# msgid "Installation prefix:"
-# msgstr "&πρόθεμα εγκατάστασης:"
-# | msgid "directory"
-# msgid "Directory:" msgid "Directory:"
-# msgstr "κατάλογος" msgstr "κατάλογος:"
-
 # Letter Frequencies of the Greek language
 GREEK_LETTER_PENALTIES = {
   'α': 10.81, 'τ': 7.99, 'ο': 7.23, 'ε': 7.18, 'σ': 7.00, 'ι': 6.64,
@@ -118,7 +104,7 @@ def insert_ampersand_before_letter(msgstr, letter):
   if lower_index == -1 and upper_index == -1:
     return msgstr # cannot happen
   elif lower_index == -1 or (upper_index != -1 and upper_index < lower_index):
-    return msgstr.replace(upper_letter, '&' + lower_letter, 1)
+    return msgstr.replace(upper_letter, '&' + upper_letter if upper_index == 0 else lower_letter, 1)
   else:
     return msgstr.replace(lower_letter, '&' + lower_letter, 1)
 
@@ -163,9 +149,23 @@ def apply_trailing_change(old_msgid, new_msgid, msgstr):
 def apply_case_change(old_msgid, new_msgid, msgstr):
   def first_alpha_index(s):
     # Find the first index of an alphabetic character
+    in_tag = False # Skip content in tags
     for i, ch in enumerate(s):
-      if ch.isalpha(): return i
+      if ch == '<':
+        in_tag = True
+        continue
+      elif ch == '>':
+        in_tag = False
+        continue
+      if not in_tag and ch.isalpha():
+        return i
     return -1
+
+  def clean_string(s):
+    return ''.join(ch for ch in s if ch.isalnum())
+
+  old_msgid = clean_string(old_msgid)
+  new_msgid = clean_string(new_msgid)
 
   def sentence_case(s):
     # Check if the first character is '&' or a non-alphabetic symbol
